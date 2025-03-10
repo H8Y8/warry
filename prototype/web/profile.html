@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>個人資料 - 電子產品保固記錄服務</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex flex-col">
+        <!-- 頂部導航 -->
+        <nav class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex">
+                        <div class="flex-shrink-0 flex items-center">
+                            <i class="fas fa-shield-alt text-2xl text-indigo-600 mr-2"></i>
+                            <span class="font-bold text-xl text-gray-900">保固大師</span>
+                        </div>
+                        <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                            <a href="dashboard.html" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                儀表板
+                            </a>
+                            <a href="products.html" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                我的產品
+                            </a>
+                            <a href="warranty-alerts.html" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                保固提醒
+                            </a>
+                            <a href="profile.html" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                個人資料
+                            </a>
+                        </div>
+                    </div>
+                    <div class="hidden sm:ml-6 sm:flex sm:items-center">
+                        <div class="ml-3 relative">
+                            <div>
+                                <button type="button" class="bg-white rounded-full flex text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" id="user-menu-button">
+                                    <span class="sr-only">打開用戶菜單</span>
+                                    <img class="h-8 w-8 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="用戶頭像">
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="-mr-2 flex items-center sm:hidden">
+                        <button type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" id="mobile-menu-button">
+                            <span class="sr-only">打開主菜單</span>
+                            <i class="fas fa-bars"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 移動端菜單，默認隱藏 -->
+            <div class="sm:hidden hidden" id="mobile-menu">
+                <div class="pt-2 pb-3 space-y-1">
+                    <a href="dashboard.html" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                        儀表板
+                    </a>
+                    <a href="products.html" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                        我的產品
+                    </a>
+                    <a href="warranty-alerts.html" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                        保固提醒
+                    </a>
+                    <a href="profile.html" class="bg-indigo-50 border-indigo-500 text-indigo-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                        個人資料
+                    </a>
+                </div>
+                <div class="pt-4 pb-3 border-t border-gray-200">
+                    <div class="flex items-center px-4">
+                        <div class="flex-shrink-0">
+                            <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="用戶頭像">
+                        </div>
+                        <div class="ml-3">
+                            <div class="text-base font-medium text-gray-800">王小明</div>
+                            <div class="text-sm font-medium text-gray-500">wang@example.com</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 space-y-1">
+                        <a href="profile.html" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+                            個人資料
+                        </a>
+                        <a href="#" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+                            設置
+                        </a>
+                        <a href="home.html" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+                            登出
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 頁面內容 -->
+        <main class="flex-1">
+            <div class="py-6">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                        個人資料
+                    </h1>
+                </div>
+
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+                    <div class="md:grid md:grid-cols-3 md:gap-6">
+                        <div class="md:col-span-1">
+                            <div class="px-4 sm:px-0">
+                                <h3 class="text-lg font-medium leading-6 text-gray-900">個人信息</h3>
+                                <p class="mt-1 text-sm text-gray-600">
+                                    您的個人信息將用於發送保固提醒和其他相關通知。
+                                </p>
+                            </div>
+                        </div>
+                        <div class="mt-5 md:mt-0 md:col-span-2">
+                            <form action="#" method="POST">
+                                <div class="shadow overflow-hidden sm:rounded-md">
+                                    <div class="px-4 py-5 bg-white sm:p-6">
+                                        <div class="grid grid-cols-6 gap-6">
+                                            <div class="col-span-6 sm:col-span-3">
+                                                <label for="first-name" class="block text-sm font-medium text-gray-700">名字</label>
+                                                <input type="text" name="first-name" id="first-name" autocomplete="given-name" value="小明" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                            </div>
+
+                                            <div class="col-span-6 sm:col-span-3">
+                                                <label for="last-name" class="block text-sm font-medium text-gray-700">姓氏</label>
+                                                <input type="text" name="last-name" id="last-name" autocomplete="family-name" value="王" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                            </div>
+
+                                            <div class="col-span-6 sm:col-span-4">
+                                                <label for="email-address" class="block text-sm font-medium text-gray-700">電子郵件</label>
+                                                <input type="text" name="email-address" id="email-address" autocomplete="email" value="wang@example.com" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                            </div>
+
+                                            <div class="col-span-6 sm:col-span-4">
+                                                <label for="phone-number" class="block text-sm font-medium text-gray-700">手機號碼</label>
+                                                <input type="text" name="phone-number" id="phone-number" autocomplete="tel" value="0912-345-678" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                            </div>
+
+                                            <div class="col-span-6">
+                                                <div class="flex items-start">
+                                                    <div class="flex items-center h-5">
+                                                        <input id="email-notification" name="email-notification" type="checkbox" checked class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                                    </div>
+                                                    <div class="ml-3 text-sm">
+                                                        <label for="email-notification" class="font-medium text-gray-700">電子郵件通知</label>
+                                                        <p class="text-gray-500">接收保固到期和相關信息的電子郵件通知。</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-span-6">
+                                                <div class="flex items-start">
+                                                    <div class="flex items-center h-5">
+                                                        <input id="sms-notification" name="sms-notification" type="checkbox" checked class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                                    </div>
+                                                    <div class="ml-3 text-sm">
+                                                        <label for="sms-notification" class="font-medium text-gray-700">簡訊通知</label>
+                                                        <p class="text-gray-500">接收保固到期和相關信息的簡訊通知。</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+                                        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                            保存
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hidden sm:block" aria-hidden="true">
+                    <div class="py-5">
+                        <div class="border-t border-gray-200"></div>
+                    </div>
+                </div>
+
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+                    <div class="md:grid md:grid-cols-3 md:gap-6">
+                        <div class="md:col-span-1">
+                            <div class="px-4 sm:px-0">
+                                <h3 class="text-lg font-medium leading-6 text-gray-900">帳號安全</h3>
+                                <p class="mt-1 text-sm text-gray-600">
+                                    修改您的密碼，設置雙重驗證等安全功能。
+                                </p>
+                            </div>
+                        </div>
+                        <div class="mt-5 md:mt-0 md:col-span-2">
+                            <form action="#" method="POST">
+                                <div class="shadow overflow-hidden sm:rounded-md">
+                                    <div class="px-4 py-5 bg-white sm:p-6">
+                                        <div class="grid grid-cols-6 gap-6">
+                                            <div class="col-span-6 sm:col-span-4">
+                                                <label for="current-password" class="block text-sm font-medium text-gray-700">當前密碼</label>
+                                                <input type="password" name="current-password" id="current-password" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                            </div>
+
+                                            <div class="col-span-6 sm:col-span-4">
+                                                <label for="new-password" class="block text-sm font-medium text-gray-700">新密碼</label>
+                                                <input type="password" name="new-password" id="new-password" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                            </div>
+
+                                            <div class="col-span-6 sm:col-span-4">
+                                                <label for="confirm-password" class="block text-sm font-medium text-gray-700">確認新密碼</label>
+                                                <input type="password" name="confirm-password" id="confirm-password" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                            </div>
+
+                                            <div class="col-span-6">
+                                                <div class="flex items-start">
+                                                    <div class="flex items-center h-5">
+                                                        <input id="two-factor-auth" name="two-factor-auth" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                                    </div>
+                                                    <div class="ml-3 text-sm">
+                                                        <label for="two-factor-auth" class="font-medium text-gray-700">啟用雙重驗證</label>
+                                                        <p class="text-gray-500">增強帳號安全性，每次登入時需要額外的驗證步驟。</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+                                        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                            更新密碼
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hidden sm:block" aria-hidden="true">
+                    <div class="py-5">
+                        <div class="border-t border-gray-200"></div>
+                    </div>
+                </div>
+
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+                    <div class="md:grid md:grid-cols-3 md:gap-6">
+                        <div class="md:col-span-1">
+                            <div class="px-4 sm:px-0">
+                                <h3 class="text-lg font-medium leading-6 text-gray-900">通知設置</h3>
+                                <p class="mt-1 text-sm text-gray-600">
+                                    自定義您接收保固提醒和其他通知的方式。
+                                </p>
+                            </div>
+                        </div>
+                        <div class="mt-5 md:mt-0 md:col-span-2">
+                            <form action="#" method="POST">
+                                <div class="shadow overflow-hidden sm:rounded-md">
+                                    <div class="px-4 py-5 bg-white space-y-6 sm:p-6">
+                                        <fieldset>
+                                            <legend class="text-base font-medium text-gray-900">保固提醒時間</legend>
+                                            <div class="mt-4">
+                                                <div class="flex items-center">
+                                                    <input id="reminder-30" name="reminder-time" type="radio" checked class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                                                    <label for="reminder-30" class="ml-3 block text-sm font-medium text-gray-700">
+                                                        保固到期前30天
+                                                    </label>
+                                                </div>
+                                                <div class="mt-4 flex items-center">
+                                                    <input id="reminder-60" name="reminder-time" type="radio" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                                                    <label for="reminder-60" class="ml-3 block text-sm font-medium text-gray-700">
+                                                        保固到期前60天
+                                                    </label>
+                                                </div>
+                                                <div class="mt-4 flex items-center">
+                                                    <input id="reminder-90" name="reminder-time" type="radio" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                                                    <label for="reminder-90" class="ml-3 block text-sm font-medium text-gray-700">
+                                                        保固到期前90天
+                                                    </label>
+                                                </div>
+                                                <div class="mt-4 flex items-center">
+                                                    <input id="reminder-custom" name="reminder-time" type="radio" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                                                    <label for="reminder-custom" class="ml-3 block text-sm font-medium text-gray-700">
+                                                        自定義：
+                                                    </label>
+                                                    <input type="number" name="custom-reminder" min="1" max="365" class="ml-2 max-w-lg shadow-sm block w-20 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md">
+                                                    <span class="ml-2 text-sm text-gray-500">天</span>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+
+                                        <fieldset>
+                                            <legend class="text-base font-medium text-gray-900">產品相關通知</legend>
+                                            <div class="mt-4 space-y-4">
+                                                <div class="flex items-start">
+                                                    <div class="flex items-center h-5">
+                                                        <input id="warranty-expiry" name="warranty-expiry" type="checkbox" checked class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                                    </div>
+                                                    <div class="ml-3 text-sm">
+                                                        <label for="warranty-expiry" class="font-medium text-gray-700">保固到期提醒</label>
+                                                        <p class="text-gray-500">當產品保固即將到期時接收通知。</p>
+                                                    </div>
+                                                </div>
+                                                <div class="flex items-start">
+                                                    <div class="flex items-center h-5">
+                                                        <input id="new-product" name="new-product" type="checkbox" checked class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                                    </div>
+                                                    <div class="ml-3 text-sm">
+                                                        <label for="new-product" class="font-medium text-gray-700">新產品建議</label>
+                                                        <p class="text-gray-500">當系統發現您可能需要更換的產品時接收建議。</p>
+                                                    </div>
+                                                </div>
+                                                <div class="flex items-start">
+                                                    <div class="flex items-center h-5">
+                                                        <input id="tips" name="tips" type="checkbox" checked class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                                    </div>
+                                                    <div class="ml-3 text-sm">
+                                                        <label for="tips" class="font-medium text-gray-700">產品使用技巧</label>
+                                                        <p class="text-gray-500">接收關於您的產品的維護和使用技巧。</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                    <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+                                        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                            保存設置
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hidden sm:block" aria-hidden="true">
+                    <div class="py-5">
+                        <div class="border-t border-gray-200"></div>
+                    </div>
+                </div>
+
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 mb-10">
+                    <div class="md:grid md:grid-cols-3 md:gap-6">
+                        <div class="md:col-span-1">
+                            <div class="px-4 sm:px-0">
+                                <h3 class="text-lg font-medium leading-6 text-gray-900">帳號管理</h3>
+                                <p class="mt-1 text-sm text-gray-600">
+                                    管理您的帳號設置或刪除帳號。
+                                </p>
+                            </div>
+                        </div>
+                        <div class="mt-5 md:mt-0 md:col-span-2">
+                            <div class="shadow sm:rounded-md">
+                                <div class="px-4 py-5 bg-white sm:p-6">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900">刪除帳號</h3>
+                                    <div class="mt-2 max-w-xl text-sm text-gray-500">
+                                        <p>
+                                            刪除帳號後，您的所有數據將被永久移除。此操作無法撤銷。
+                                        </p>
+                                    </div>
+                                    <div class="mt-5">
+                                        <button type="button" class="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm">
+                                            刪除帳號
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 移動端菜單切換
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html> 

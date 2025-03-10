@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>添加產品 - 電子產品保固記錄服務</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex flex-col">
+        <!-- 頂部導航 -->
+        <nav class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex">
+                        <div class="flex-shrink-0 flex items-center">
+                            <i class="fas fa-shield-alt text-2xl text-indigo-600 mr-2"></i>
+                            <span class="font-bold text-xl text-gray-900">保固大師</span>
+                        </div>
+                        <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                            <a href="dashboard.html" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                儀表板
+                            </a>
+                            <a href="products.html" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                我的產品
+                            </a>
+                            <a href="warranty-alerts.html" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                保固提醒
+                            </a>
+                            <a href="profile.html" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                個人資料
+                            </a>
+                        </div>
+                    </div>
+                    <div class="hidden sm:ml-6 sm:flex sm:items-center">
+                        <div class="ml-3 relative">
+                            <div>
+                                <button type="button" class="bg-white rounded-full flex text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" id="user-menu-button">
+                                    <span class="sr-only">打開用戶菜單</span>
+                                    <img class="h-8 w-8 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="用戶頭像">
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="-mr-2 flex items-center sm:hidden">
+                        <button type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" id="mobile-menu-button">
+                            <span class="sr-only">打開主菜單</span>
+                            <i class="fas fa-bars"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 移動端菜單，默認隱藏 -->
+            <div class="sm:hidden hidden" id="mobile-menu">
+                <div class="pt-2 pb-3 space-y-1">
+                    <a href="dashboard.html" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                        儀表板
+                    </a>
+                    <a href="products.html" class="bg-indigo-50 border-indigo-500 text-indigo-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                        我的產品
+                    </a>
+                    <a href="warranty-alerts.html" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                        保固提醒
+                    </a>
+                    <a href="profile.html" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                        個人資料
+                    </a>
+                </div>
+                <div class="pt-4 pb-3 border-t border-gray-200">
+                    <div class="flex items-center px-4">
+                        <div class="flex-shrink-0">
+                            <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="用戶頭像">
+                        </div>
+                        <div class="ml-3">
+                            <div class="text-base font-medium text-gray-800">王小明</div>
+                            <div class="text-sm font-medium text-gray-500">wang@example.com</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 space-y-1">
+                        <a href="profile.html" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+                            個人資料
+                        </a>
+                        <a href="#" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+                            設置
+                        </a>
+                        <a href="home.html" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+                            登出
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 頁面內容 -->
+        <main class="flex-1">
+            <div class="py-6">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex items-center">
+                        <a href="products.html" class="text-indigo-600 hover:text-indigo-900 mr-2">
+                            <i class="fas fa-arrow-left"></i>
+                        </a>
+                        <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl">
+                            添加新產品
+                        </h1>
+                    </div>
+                </div>
+
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+                    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <form action="#" method="POST">
+                                <div class="space-y-6">
+                                    <!-- 產品基本信息 -->
+                                    <div>
+                                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">產品基本信息</h3>
+                                        <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                                            <div class="sm:col-span-3">
+                                                <label for="category" class="block text-sm font-medium text-gray-700">產品類別</label>
+                                                <div class="mt-1">
+                                                    <select id="category" name="category" autocomplete="category" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                        <option value="">請選擇產品類別</option>
+                                                        <option value="smartphone">智能手機</option>
+                                                        <option value="laptop">筆記本電腦</option>
+                                                        <option value="tablet">平板電腦</option>
+                                                        <option value="tv">電視</option>
+                                                        <option value="audio">音響設備</option>
+                                                        <option value="appliance">家用電器</option>
+                                                        <option value="camera">相機</option>
+                                                        <option value="gaming">遊戲主機</option>
+                                                        <option value="other">其他</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="sm:col-span-3">
+                                                <label for="brand" class="block text-sm font-medium text-gray-700">品牌</label>
+                                                <div class="mt-1">
+                                                    <input type="text" name="brand" id="brand" autocomplete="brand" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="例如：Apple、Samsung、Sony">
+                                                </div>
+                                            </div>
+
+                                            <div class="sm:col-span-6">
+                                                <label for="model" class="block text-sm font-medium text-gray-700">產品型號</label>
+                                                <div class="mt-1">
+                                                    <input type="text" name="model" id="model" autocomplete="model" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="例如：iPhone 13 Pro、Galaxy S21">
+                                                </div>
+                                            </div>
+
+                                            <div class="sm:col-span-6">
+                                                <label for="serial" class="block text-sm font-medium text-gray-700">產品序號</label>
+                                                <div class="mt-1">
+                                                    <input type="text" name="serial" id="serial" autocomplete="serial" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="請輸入產品序號">
+                                                </div>
+                                                <p class="mt-1 text-xs text-gray-500">產品序號通常可以在產品包裝、背面或底部找到。</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 購買信息 -->
+                                    <div class="pt-6 border-t border-gray-200">
+                                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">購買信息</h3>
+                                        <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                                            <div class="sm:col-span-3">
+                                                <label for="purchase_date" class="block text-sm font-medium text-gray-700">購買日期</label>
+                                                <div class="mt-1">
+                                                    <input type="date" name="purchase_date" id="purchase_date" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                </div>
+                                            </div>
+
+                                            <div class="sm:col-span-3">
+                                                <label for="price" class="block text-sm font-medium text-gray-700">購買金額</label>
+                                                <div class="mt-1 relative rounded-md shadow-sm">
+                                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <span class="text-gray-500 sm:text-sm">NT$</span>
+                                                    </div>
+                                                    <input type="text" name="price" id="price" class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-12 sm:text-sm border-gray-300 rounded-md" placeholder="0.00" aria-describedby="price-currency">
+                                                </div>
+                                            </div>
+
+                                            <div class="sm:col-span-6">
+                                                <label for="purchase_location" class="block text-sm font-medium text-gray-700">購買地點</label>
+                                                <div class="mt-1">
+                                                    <input type="text" name="purchase_location" id="purchase_location" autocomplete="purchase_location" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="例如：Apple直營店、燦坤3C">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 保固信息 -->
+                                    <div class="pt-6 border-t border-gray-200">
+                                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">保固信息</h3>
+                                        <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                                            <div class="sm:col-span-3">
+                                                <label for="warranty_period" class="block text-sm font-medium text-gray-700">保固期限</label>
+                                                <div class="mt-1 flex">
+                                                    <input type="number" name="warranty_period" id="warranty_period" min="1" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-24 sm:text-sm border-gray-300 rounded-md" placeholder="1">
+                                                    <select name="warranty_period_unit" class="ml-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                                        <option value="year">年</option>
+                                                        <option value="month">月</option>
+                                                        <option value="day">天</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="sm:col-span-3">
+                                                <label for="extended_warranty" class="block text-sm font-medium text-gray-700">是否有延長保固</label>
+                                                <div class="mt-4 flex items-center">
+                                                    <input id="extended_warranty" name="extended_warranty" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                                    <label for="extended_warranty" class="ml-2 block text-sm text-gray-900">
+                                                        是，我購買了延長保固服務
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <div class="sm:col-span-6" id="extended_warranty_details" style="display: none;">
+                                                <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                                                    <div class="sm:col-span-3">
+                                                        <label for="extended_warranty_provider" class="block text-sm font-medium text-gray-700">延長保固提供商</label>
+                                                        <div class="mt-1">
+                                                            <input type="text" name="extended_warranty_provider" id="extended_warranty_provider" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="例如：AppleCare+">
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="sm:col-span-3">
+                                                        <label for="extended_warranty_period" class="block text-sm font-medium text-gray-700">延長保固期限</label>
+                                                        <div class="mt-1 flex">
+                                                            <input type="number" name="extended_warranty_period" id="extended_warranty_period" min="1" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-24 sm:text-sm border-gray-300 rounded-md" placeholder="1">
+                                                            <select name="extended_warranty_period_unit" class="ml-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                                                <option value="year">年</option>
+                                                                <option value="month">月</option>
+                                                                <option value="day">天</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 憑證上傳 -->
+                                    <div class="pt-6 border-t border-gray-200">
+                                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">憑證上傳</h3>
+                                        <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                                            <div class="sm:col-span-6">
+                                                <label for="receipt" class="block text-sm font-medium text-gray-700">購買憑證上傳</label>
+                                                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                                                    <div class="space-y-1 text-center">
+                                                        <i class="fas fa-upload text-gray-400 text-3xl mb-2"></i>
+                                                        <div class="flex text-sm text-gray-600">
+                                                            <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                                                <span>上傳檔案</span>
+                                                                <input id="file-upload" name="file-upload" type="file" class="sr-only">
+                                                            </label>
+                                                            <p class="pl-1">或拖放檔案到此處</p>
+                                                        </div>
+                                                        <p class="text-xs text-gray-500">
+                                                            支援PNG、JPG、PDF，最大檔案大小10MB
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 其他信息 -->
+                                    <div class="pt-6 border-t border-gray-200">
+                                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">其他信息</h3>
+                                        <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                                            <div class="sm:col-span-6">
+                                                <label for="notes" class="block text-sm font-medium text-gray-700">備註</label>
+                                                <div class="mt-1">
+                                                    <textarea id="notes" name="notes" rows="3" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="其他想要記錄的產品信息，如顏色、容量等"></textarea>
+                                                </div>
+                                            </div>
+
+                                            <div class="sm:col-span-6">
+                                                <label for="reminder" class="block text-sm font-medium text-gray-700">保固到期提醒時間</label>
+                                                <div class="mt-1">
+                                                    <select id="reminder" name="reminder" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                        <option value="30">保固到期前30天</option>
+                                                        <option value="60">保固到期前60天</option>
+                                                        <option value="90">保固到期前90天</option>
+                                                        <option value="180">保固到期前180天</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 提交按鈕 -->
+                                <div class="pt-5 mt-6 border-t border-gray-200">
+                                    <div class="flex justify-end">
+                                        <a href="products.html" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                            取消
+                                        </a>
+                                        <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                            添加產品
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 移動端菜單切換
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // 延長保固選項的顯示/隱藏
+        document.getElementById('extended_warranty').addEventListener('change', function() {
+            const extendedWarrantyDetails = document.getElementById('extended_warranty_details');
+            if (this.checked) {
+                extendedWarrantyDetails.style.display = 'block';
+            } else {
+                extendedWarrantyDetails.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html> 

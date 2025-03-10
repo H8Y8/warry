@@ -1,0 +1,16 @@
+# 依賴
+node_modules/
+/client/node_modules/
+/server/node_modules/
+
+# 構建產物
+/client/build/
+/server/dist/
+/dist/
+
+# 環境變數
+.env
+.env.local
+
+# 上傳文件
+/uploads/

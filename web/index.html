@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>電子產品保固記錄服務 - 原型展示</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .prototype-container {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        .prototype-title {
+            background-color: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+        }
+        iframe {
+            width: 100%;
+            border: none;
+            height: 600px;
+        }
+        .device-toolbar {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .device-button {
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            background-color: #e2e8f0;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        .device-button:hover {
+            background-color: #cbd5e1;
+        }
+        .device-button.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <h1 class="text-3xl font-bold text-gray-900">電子產品保固記錄服務原型</h1>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">原型界面展示</h2>
+            <p class="text-gray-600 mb-4">
+                以下是電子產品保固記錄服務的高保真原型界面，點擊各設備按鈕可切換視圖大小以模擬不同裝置下的顯示效果。
+            </p>
+        </div>
+
+        <div class="prototype-container">
+            <div class="prototype-title">首頁</div>
+            <div class="p-4">
+                <div class="device-toolbar">
+                    <button class="device-button active" data-frame="home" data-width="100%">桌面</button>
+                    <button class="device-button" data-frame="home" data-width="768px">平板</button>
+                    <button class="device-button" data-frame="home" data-width="375px">手機</button>
+                </div>
+                <iframe id="home-frame" src="home.html" frameborder="0"></iframe>
+            </div>
+        </div>
+
+        <div class="prototype-container">
+            <div class="prototype-title">登入頁面</div>
+            <div class="p-4">
+                <div class="device-toolbar">
+                    <button class="device-button active" data-frame="login" data-width="100%">桌面</button>
+                    <button class="device-button" data-frame="login" data-width="768px">平板</button>
+                    <button class="device-button" data-frame="login" data-width="375px">手機</button>
+                </div>
+                <iframe id="login-frame" src="login.html" frameborder="0"></iframe>
+            </div>
+        </div>
+
+        <div class="prototype-container">
+            <div class="prototype-title">註冊頁面</div>
+            <div class="p-4">
+                <div class="device-toolbar">
+                    <button class="device-button active" data-frame="register" data-width="100%">桌面</button>
+                    <button class="device-button" data-frame="register" data-width="768px">平板</button>
+                    <button class="device-button" data-frame="register" data-width="375px">手機</button>
+                </div>
+                <iframe id="register-frame" src="register.html" frameborder="0"></iframe>
+            </div>
+        </div>
+
+        <div class="prototype-container">
+            <div class="prototype-title">儀表板</div>
+            <div class="p-4">
+                <div class="device-toolbar">
+                    <button class="device-button active" data-frame="dashboard" data-width="100%">桌面</button>
+                    <button class="device-button" data-frame="dashboard" data-width="768px">平板</button>
+                    <button class="device-button" data-frame="dashboard" data-width="375px">手機</button>
+                </div>
+                <iframe id="dashboard-frame" src="dashboard.html" frameborder="0"></iframe>
+            </div>
+        </div>
+
+        <div class="prototype-container">
+            <div class="prototype-title">產品列表</div>
+            <div class="p-4">
+                <div class="device-toolbar">
+                    <button class="device-button active" data-frame="products" data-width="100%">桌面</button>
+                    <button class="device-button" data-frame="products" data-width="768px">平板</button>
+                    <button class="device-button" data-frame="products" data-width="375px">手機</button>
+                </div>
+                <iframe id="products-frame" src="products.html" frameborder="0"></iframe>
+            </div>
+        </div>
+
+        <div class="prototype-container">
+            <div class="prototype-title">產品詳情</div>
+            <div class="p-4">
+                <div class="device-toolbar">
+                    <button class="device-button active" data-frame="product-detail" data-width="100%">桌面</button>
+                    <button class="device-button" data-frame="product-detail" data-width="768px">平板</button>
+                    <button class="device-button" data-frame="product-detail" data-width="375px">手機</button>
+                </div>
+                <iframe id="product-detail-frame" src="product-detail.html" frameborder="0"></iframe>
+            </div>
+        </div>
+
+        <div class="prototype-container">
+            <div class="prototype-title">添加產品</div>
+            <div class="p-4">
+                <div class="device-toolbar">
+                    <button class="device-button active" data-frame="add-product" data-width="100%">桌面</button>
+                    <button class="device-button" data-frame="add-product" data-width="768px">平板</button>
+                    <button class="device-button" data-frame="add-product" data-width="375px">手機</button>
+                </div>
+                <iframe id="add-product-frame" src="add-product.html" frameborder="0"></iframe>
+            </div>
+        </div>
+
+        <div class="prototype-container">
+            <div class="prototype-title">個人資料設置</div>
+            <div class="p-4">
+                <div class="device-toolbar">
+                    <button class="device-button active" data-frame="profile" data-width="100%">桌面</button>
+                    <button class="device-button" data-frame="profile" data-width="768px">平板</button>
+                    <button class="device-button" data-frame="profile" data-width="375px">手機</button>
+                </div>
+                <iframe id="profile-frame" src="profile.html" frameborder="0"></iframe>
+            </div>
+        </div>
+
+        <div class="prototype-container">
+            <div class="prototype-title">保固提醒</div>
+            <div class="p-4">
+                <div class="device-toolbar">
+                    <button class="device-button active" data-frame="warranty-alerts" data-width="100%">桌面</button>
+                    <button class="device-button" data-frame="warranty-alerts" data-width="768px">平板</button>
+                    <button class="device-button" data-frame="warranty-alerts" data-width="375px">手機</button>
+                </div>
+                <iframe id="warranty-alerts-frame" src="warranty-alerts.html" frameborder="0"></iframe>
+            </div>
+        </div>
+
+        <div class="prototype-container">
+            <div class="prototype-title">AI產品圖片分析</div>
+            <div class="p-4">
+                <div class="device-toolbar">
+                    <button class="device-button active" data-frame="ai-product-analysis" data-width="100%">桌面</button>
+                    <button class="device-button" data-frame="ai-product-analysis" data-width="768px">平板</button>
+                    <button class="device-button" data-frame="ai-product-analysis" data-width="375px">手機</button>
+                </div>
+                <iframe id="ai-product-analysis-frame" src="ai-product-analysis.html" frameborder="0"></iframe>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.querySelectorAll('.device-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const frameId = this.getAttribute('data-frame');
+                const width = this.getAttribute('data-width');
+                const frame = document.getElementById(`${frameId}-frame`);
+                
+                // Update active button
+                this.parentNode.querySelectorAll('.device-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // Update iframe width
+                frame.style.width = width;
+                frame.style.margin = width === '100%' ? '0' : '0 auto';
+            });
+        });
+    </script>
+</body>
+</html> 

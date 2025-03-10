@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>保固提醒 - 電子產品保固記錄服務</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex flex-col">
+        <!-- 頂部導航 -->
+        <nav class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex">
+                        <div class="flex-shrink-0 flex items-center">
+                            <i class="fas fa-shield-alt text-2xl text-indigo-600 mr-2"></i>
+                            <span class="font-bold text-xl text-gray-900">保固大師</span>
+                        </div>
+                        <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                            <a href="dashboard.html" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                儀表板
+                            </a>
+                            <a href="products.html" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                我的產品
+                            </a>
+                            <a href="warranty-alerts.html" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                保固提醒
+                            </a>
+                            <a href="profile.html" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                個人資料
+                            </a>
+                        </div>
+                    </div>
+                    <div class="hidden sm:ml-6 sm:flex sm:items-center">
+                        <div class="ml-3 relative">
+                            <div>
+                                <button type="button" class="bg-white rounded-full flex text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" id="user-menu-button">
+                                    <span class="sr-only">打開用戶菜單</span>
+                                    <img class="h-8 w-8 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="用戶頭像">
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="-mr-2 flex items-center sm:hidden">
+                        <button type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" id="mobile-menu-button">
+                            <span class="sr-only">打開主菜單</span>
+                            <i class="fas fa-bars"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 移動端菜單，默認隱藏 -->
+            <div class="sm:hidden hidden" id="mobile-menu">
+                <div class="pt-2 pb-3 space-y-1">
+                    <a href="dashboard.html" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                        儀表板
+                    </a>
+                    <a href="products.html" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                        我的產品
+                    </a>
+                    <a href="warranty-alerts.html" class="bg-indigo-50 border-indigo-500 text-indigo-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                        保固提醒
+                    </a>
+                    <a href="profile.html" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                        個人資料
+                    </a>
+                </div>
+                <div class="pt-4 pb-3 border-t border-gray-200">
+                    <div class="flex items-center px-4">
+                        <div class="flex-shrink-0">
+                            <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="用戶頭像">
+                        </div>
+                        <div class="ml-3">
+                            <div class="text-base font-medium text-gray-800">王小明</div>
+                            <div class="text-sm font-medium text-gray-500">wang@example.com</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 space-y-1">
+                        <a href="profile.html" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+                            個人資料
+                        </a>
+                        <a href="#" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+                            設置
+                        </a>
+                        <a href="home.html" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+                            登出
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 頁面內容 -->
+        <main class="flex-1">
+            <div class="py-6">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                        保固提醒
+                    </h1>
+                </div>
+                
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+                    <!-- 提醒通知設置 -->
+                    <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+                        <div class="px-4 py-5 sm:p-6">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">提醒設置</h3>
+                            <div class="mt-2 max-w-xl text-sm text-gray-500">
+                                <p>設置您希望在保固到期前多久收到提醒通知。</p>
+                            </div>
+                            <form class="mt-5 sm:flex sm:items-center">
+                                <div class="w-full sm:max-w-xs">
+                                    <label for="reminder" class="sr-only">提醒設置</label>
+                                    <select id="reminder" name="reminder" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                        <option selected>保固到期前30天</option>
+                                        <option>保固到期前60天</option>
+                                        <option>保固到期前90天</option>
+                                        <option>保固到期前180天</option>
+                                    </select>
+                                </div>
+                                <div class="w-full sm:max-w-xs mt-3 sm:mt-0 sm:ml-4">
+                                    <label for="notification" class="sr-only">通知方式</label>
+                                    <select id="notification" name="notification" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                        <option selected>電子郵件通知</option>
+                                        <option>簡訊通知</option>
+                                        <option>應用推送通知</option>
+                                        <option>全部通知方式</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="mt-3 w-full inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                                    保存設置
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- 緊急提醒區 -->
+                    <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-exclamation-circle text-red-400"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-red-700">
+                                    您有 <span class="font-medium">1</span> 個產品保固將在 <span class="font-medium">7天內</span> 到期。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 保固提醒列表 -->
+                    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                        <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                            <div>
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">即將到期的產品</h3>
+                                <p class="mt-1 max-w-2xl text-sm text-gray-500">以下產品的保固期即將結束，請及時查看。</p>
+                            </div>
+                            <div>
+                                <select id="sort-by" name="sort-by" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                    <option selected>按到期日排序（最近優先）</option>
+                                    <option>按產品名稱排序</option>
+                                    <option>按購買日期排序</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="border-t border-gray-200">
+                            <ul class="divide-y divide-gray-200">
+                                <!-- 第一個產品 - 7天內到期 -->
+                                <li class="bg-red-50">
+                                    <a href="product-detail.html" class="block hover:bg-red-100">
+                                        <div class="px-4 py-4 sm:px-6">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center">
+                                                    <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1517404215738-15263e9f9178?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=80" alt="產品圖片">
+                                                    <div class="ml-4">
+                                                        <p class="text-sm font-medium text-indigo-600 truncate">
+                                                            Apple iPhone 13 Pro
+                                                        </p>
+                                                        <p class="mt-1 text-xs text-gray-500">
+                                                            序號: FVFXC2GRJCLM
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="ml-2 flex-shrink-0 flex">
+                                                    <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                                        剩餘7天
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="mt-2 sm:flex sm:justify-between">
+                                                <div class="sm:flex">
+                                                    <p class="flex items-center text-xs text-gray-500">
+                                                        <i class="far fa-calendar-alt flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                        購買日期: 2022-06-15
+                                                    </p>
+                                                    <p class="mt-2 flex items-center text-xs text-gray-500 sm:mt-0 sm:ml-6">
+                                                        <i class="fas fa-shield-alt flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                        保固期限: 1年
+                                                    </p>
+                                                </div>
+                                                <div class="mt-2 flex items-center text-xs text-gray-500 sm:mt-0">
+                                                    <i class="far fa-clock flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                    <p>
+                                                        保固到期日: 2023-06-15
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+
+                                <!-- 第二個產品 - 15天內到期 -->
+                                <li>
+                                    <a href="product-detail.html" class="block hover:bg-gray-50">
+                                        <div class="px-4 py-4 sm:px-6">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center">
+                                                    <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=80" alt="產品圖片">
+                                                    <div class="ml-4">
+                                                        <p class="text-sm font-medium text-indigo-600 truncate">
+                                                            ASUS ROG Gaming Laptop
+                                                        </p>
+                                                        <p class="mt-1 text-xs text-gray-500">
+                                                            序號: L8N4D56P3102
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="ml-2 flex-shrink-0 flex">
+                                                    <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                        剩餘15天
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="mt-2 sm:flex sm:justify-between">
+                                                <div class="sm:flex">
+                                                    <p class="flex items-center text-xs text-gray-500">
+                                                        <i class="far fa-calendar-alt flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                        購買日期: 2022-03-10
+                                                    </p>
+                                                    <p class="mt-2 flex items-center text-xs text-gray-500 sm:mt-0 sm:ml-6">
+                                                        <i class="fas fa-shield-alt flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                        保固期限: 2年
+                                                    </p>
+                                                </div>
+                                                <div class="mt-2 flex items-center text-xs text-gray-500 sm:mt-0">
+                                                    <i class="far fa-clock flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                    <p>
+                                                        保固到期日: 2024-03-10
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+
+                                <!-- 第三個產品 - 21天內到期 -->
+                                <li>
+                                    <a href="product-detail.html" class="block hover:bg-gray-50">
+                                        <div class="px-4 py-4 sm:px-6">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center">
+                                                    <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1546435770-a3e426bf472b?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=80" alt="產品圖片">
+                                                    <div class="ml-4">
+                                                        <p class="text-sm font-medium text-indigo-600 truncate">
+                                                            Sony WH-1000XM4 耳機
+                                                        </p>
+                                                        <p class="mt-1 text-xs text-gray-500">
+                                                            序號: S0NYX4579KL3
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="ml-2 flex-shrink-0 flex">
+                                                    <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                        剩餘21天
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="mt-2 sm:flex sm:justify-between">
+                                                <div class="sm:flex">
+                                                    <p class="flex items-center text-xs text-gray-500">
+                                                        <i class="far fa-calendar-alt flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                        購買日期: 2022-05-22
+                                                    </p>
+                                                    <p class="mt-2 flex items-center text-xs text-gray-500 sm:mt-0 sm:ml-6">
+                                                        <i class="fas fa-shield-alt flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                        保固期限: 1年
+                                                    </p>
+                                                </div>
+                                                <div class="mt-2 flex items-center text-xs text-gray-500 sm:mt-0">
+                                                    <i class="far fa-clock flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                    <p>
+                                                        保固到期日: 2023-05-22
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+
+                                <!-- 第四個產品 - 30天內到期 -->
+                                <li>
+                                    <a href="product-detail.html" class="block hover:bg-gray-50">
+                                        <div class="px-4 py-4 sm:px-6">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center">
+                                                    <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80" alt="產品圖片">
+                                                    <div class="ml-4">
+                                                        <p class="text-sm font-medium text-indigo-600 truncate">
+                                                            Apple iPad Pro 11"
+                                                        </p>
+                                                        <p class="mt-1 text-xs text-gray-500">
+                                                            序號: DLXCQ2HTN955
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="ml-2 flex-shrink-0 flex">
+                                                    <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                        剩餘30天
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="mt-2 sm:flex sm:justify-between">
+                                                <div class="sm:flex">
+                                                    <p class="flex items-center text-xs text-gray-500">
+                                                        <i class="far fa-calendar-alt flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                        購買日期: 2022-05-05
+                                                    </p>
+                                                    <p class="mt-2 flex items-center text-xs text-gray-500 sm:mt-0 sm:ml-6">
+                                                        <i class="fas fa-shield-alt flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                        保固期限: 1年
+                                                    </p>
+                                                </div>
+                                                <div class="mt-2 flex items-center text-xs text-gray-500 sm:mt-0">
+                                                    <i class="far fa-clock flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                    <p>
+                                                        保固到期日: 2023-05-05
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- 過期產品 -->
+                    <div class="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
+                        <div class="px-4 py-5 sm:px-6">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">已過期產品</h3>
+                            <p class="mt-1 max-w-2xl text-sm text-gray-500">以下產品的保固期已經結束。</p>
+                        </div>
+                        <div class="border-t border-gray-200">
+                            <ul class="divide-y divide-gray-200">
+                                <li>
+                                    <a href="product-detail.html" class="block hover:bg-gray-50">
+                                        <div class="px-4 py-4 sm:px-6">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center">
+                                                    <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80" alt="產品圖片">
+                                                    <div class="ml-4">
+                                                        <p class="text-sm font-medium text-indigo-600 truncate">
+                                                            Samsung Galaxy S20
+                                                        </p>
+                                                        <p class="mt-1 text-xs text-gray-500">
+                                                            序號: SM-G981U1XXXX
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="ml-2 flex-shrink-0 flex">
+                                                    <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                                        已過期
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="mt-2 sm:flex sm:justify-between">
+                                                <div class="sm:flex">
+                                                    <p class="flex items-center text-xs text-gray-500">
+                                                        <i class="far fa-calendar-alt flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                        購買日期: 2021-03-15
+                                                    </p>
+                                                    <p class="mt-2 flex items-center text-xs text-gray-500 sm:mt-0 sm:ml-6">
+                                                        <i class="fas fa-shield-alt flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                        保固期限: 1年
+                                                    </p>
+                                                </div>
+                                                <div class="mt-2 flex items-center text-xs text-gray-500 sm:mt-0">
+                                                    <i class="far fa-clock flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                    <p>
+                                                        保固到期日: 2022-03-15
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- 延長保固建議 -->
+                    <div class="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">保固延長服務</h3>
+                            <div class="mt-2 max-w-xl text-sm text-gray-500">
+                                <p>對於即將到期的產品，您可能希望購買延長保固服務。</p>
+                            </div>
+                            <div class="mt-5">
+                                <a href="#" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    查看延長保固服務
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 移動端菜單切換
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html> 
