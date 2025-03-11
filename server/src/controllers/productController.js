@@ -122,15 +122,35 @@ exports.getProduct = async (req, res, next) => {
  */
 exports.createProduct = async (req, res, next) => {
   try {
+    console.log('開始處理產品創建請求');
+    console.log('請求體:', req.body);
+    console.log('上傳的文件:', req.files);
+    
     // 添加用戶ID到請求體
     req.body.userId = req.user.id;
     
     // 處理上傳的圖片
     if (req.files && req.files.length > 0) {
+      console.log(`處理 ${req.files.length} 張上傳的圖片`);
+      req.files.forEach(file => {
+        console.log('文件信息:', {
+          fieldname: file.fieldname,
+          originalname: file.originalname,
+          mimetype: file.mimetype,
+          filename: file.filename,
+          path: file.path,
+          size: file.size
+        });
+      });
+      
       req.body.images = req.files.map(file => `/uploads/products/${file.filename}`);
+      console.log('設置的圖片路徑:', req.body.images);
+    } else {
+      console.log('沒有上傳圖片');
     }
     
     const product = await Product.create(req.body);
+    console.log('創建的產品:', product);
     
     // 創建保固提醒
     await Reminder.createWarrantyReminder(product, req.user);
@@ -140,6 +160,7 @@ exports.createProduct = async (req, res, next) => {
       data: product
     });
   } catch (error) {
+    console.error('創建產品時發生錯誤:', error);
     next(error);
   }
 };

@@ -5,6 +5,9 @@
 
 const { upload } = require('../config/storage');
 const { ErrorResponse } = require('./error');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 /**
  * 處理單個產品圖片上傳
@@ -57,4 +60,37 @@ exports.handleUploadError = (err, req, res, next) => {
   }
   
   next(err);
-}; 
+};
+
+// 確保上傳目錄存在
+const ensureUploadDirs = () => {
+  const dirs = [
+    'uploads',
+    'uploads/products',
+    'uploads/receipts',
+    'uploads/warranties',
+    'uploads/profiles'
+  ];
+
+  dirs.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
+
+  // 確保預設圖片存在
+  const defaultImagePath = path.join('uploads/products', 'default-product-image.jpg');
+  if (!fs.existsSync(defaultImagePath)) {
+    // 創建一個基本的預設圖片（1x1像素的透明圖片）
+    const defaultImage = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
+    fs.writeFileSync(defaultImagePath, defaultImage);
+  }
+};
+
+// 初始化上傳目錄
+ensureUploadDirs();
+
+// 配置Multer存儲
+const storage = multer.diskStorage({
+  // ... existing code ...
+}); 

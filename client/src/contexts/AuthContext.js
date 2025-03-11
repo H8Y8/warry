@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (token) {
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        const response = await api.get('/auth/me');
+        const response = await api.get('/api/auth/me');
         setUser(response.data.data);
       }
     } catch (error) {
@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post('/api/auth/login', { email, password });
       const { token } = response.data;
       localStorage.setItem('token', token);
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -53,14 +53,17 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     setLoading(true);
     setError(null);
+    console.log('開始註冊流程，請求數據:', userData);
     try {
-      const response = await api.post('/auth/register', userData);
+      const response = await api.post('/api/auth/register', userData);
+      console.log('註冊成功，響應:', response.data);
       const { token } = response.data;
       localStorage.setItem('token', token);
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       await checkAuthStatus();
       return { success: true };
     } catch (error) {
+      console.error('註冊錯誤詳情:', error);
       const message = error.response?.data?.error || '註冊失敗，請稍後再試';
       setError(message);
       return { success: false, message };
@@ -73,7 +76,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     setLoading(true);
     try {
-      await api.get('/auth/logout');
+      await api.get('/api/auth/logout');
     } catch (error) {
       console.error('登出錯誤:', error);
     } finally {
@@ -89,7 +92,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      await api.post('/auth/forgot-password', { email });
+      await api.post('/api/auth/forgot-password', { email });
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.error || '請求密碼重置失敗，請稍後再試';
@@ -105,7 +108,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      await api.put(`/auth/reset-password/${token}`, { password });
+      await api.put(`/api/auth/reset-password/${token}`, { password });
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.error || '密碼重置失敗，請稍後再試';
@@ -121,7 +124,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      await api.put('/auth/update-password', { currentPassword, newPassword });
+      await api.put('/api/auth/update-password', { currentPassword, newPassword });
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.error || '密碼更新失敗，請稍後再試';

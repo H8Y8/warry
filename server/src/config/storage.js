@@ -37,7 +37,7 @@ const storage = multer.diskStorage({
     
     // 根據文件類型選擇不同的子目錄
     let targetDir = uploadDir;
-    if (file.fieldname === 'productImage') {
+    if (file.fieldname === 'productImage' || file.fieldname === 'productImages') {
       targetDir = path.join(uploadDir, 'products');
     } else if (file.fieldname === 'receipt') {
       targetDir = path.join(uploadDir, 'receipts');

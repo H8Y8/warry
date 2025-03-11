@@ -75,153 +75,41 @@ const ProductList = () => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        // 在實際應用中，這裡會調用API
-        // const response = await api.get('/products', {
-        //   params: {
-        //     ...filters,
-        //     sort: `${sortOrder === 'desc' ? '-' : ''}${sortBy}`
-        //   }
-        // });
+        // 構建查詢參數
+        const params = {};
+        if (filters.type) params.type = filters.type;
+        if (filters.brand) params.brand = filters.brand;
+        if (filters.status) params.warranty = filters.status;
+        if (filters.search) params.search = filters.search;
+        if (sortBy) {
+          params.sort = `${sortOrder === 'desc' ? '-' : ''}${sortBy}`;
+        }
 
-        // 模擬API請求
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // 模擬產品數據
-        const mockProducts = [
-          {
-            id: 1,
-            name: 'iPhone 13 Pro',
-            type: '智慧型手機',
-            brand: 'Apple',
-            model: 'A2483',
-            purchaseDate: '2021-09-30',
-            warrantyEndDate: '2023-09-30',
-            daysLeft: 92,
-            image: 'https://images.unsplash.com/photo-1611472173362-3f53dbd65d80?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8aXBob25lJTIwMTN8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60'
-          },
-          {
-            id: 2,
-            name: 'MacBook Pro 14"',
-            type: '筆記型電腦',
-            brand: 'Apple',
-            model: 'A2442',
-            purchaseDate: '2021-11-20',
-            warrantyEndDate: '2023-11-20',
-            daysLeft: 143,
-            image: 'https://images.unsplash.com/photo-1639249227523-86c063f75d20?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTh8fG1hY2Jvb2slMjBwcm98ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60'
-          },
-          {
-            id: 3,
-            name: 'Galaxy Watch 4',
-            type: '智慧型手錶',
-            brand: 'Samsung',
-            model: 'SM-R860',
-            purchaseDate: '2022-02-15',
-            warrantyEndDate: '2023-07-15',
-            daysLeft: 15,
-            image: 'https://images.unsplash.com/photo-1617043786394-f977fa12eddf?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTd8fGdhbGF4eSUyMHdhdGNofGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=500&q=60'
-          },
-          {
-            id: 4,
-            name: 'Bose QuietComfort 45',
-            type: '耳機',
-            brand: 'Bose',
-            model: 'QC45',
-            purchaseDate: '2022-01-10',
-            warrantyEndDate: '2023-08-10',
-            daysLeft: 41,
-            image: 'https://images.unsplash.com/photo-1613040809024-b4ef7ba99bc3?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8OHx8aGVhZHBob25lc3xlbnwwfHwwfHw%3D&auto=format&fit=crop&w=500&q=60'
-          },
-          {
-            id: 5,
-            name: 'iPad Pro 12.9"',
-            type: '平板電腦',
-            brand: 'Apple',
-            model: 'A2378',
-            purchaseDate: '2021-06-15',
-            warrantyEndDate: '2023-06-15',
-            daysLeft: -15,
-            image: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8NHx8aXBhZHxlbnwwfHwwfHw%3D&auto=format&fit=crop&w=500&q=60'
-          },
-          {
-            id: 6,
-            name: 'Sony α7 IV',
-            type: '相機',
-            brand: 'Sony',
-            model: 'ILCE-7M4',
-            purchaseDate: '2022-03-20',
-            warrantyEndDate: '2024-03-20',
-            daysLeft: 264,
-            image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8Y2FtZXJhfGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=500&q=60'
-          }
-        ];
+        // 從後端 API 獲取產品列表
+        const response = await api.get('/api/products', { params });
+        const { data } = response.data;
 
         // 提取可用的過濾選項
-        const types = [...new Set(mockProducts.map(p => p.type))];
-        const brands = [...new Set(mockProducts.map(p => p.brand))];
+        const types = [...new Set(data.map(p => p.type))];
+        const brands = [...new Set(data.map(p => p.brand))];
         setAvailableFilters({
           types,
           brands
         });
 
-        // 過濾產品
-        let filteredProducts = [...mockProducts];
-        
-        if (filters.type) {
-          filteredProducts = filteredProducts.filter(p => p.type === filters.type);
-        }
-        
-        if (filters.brand) {
-          filteredProducts = filteredProducts.filter(p => p.brand === filters.brand);
-        }
-        
-        if (filters.status) {
-          if (filters.status === 'active') {
-            filteredProducts = filteredProducts.filter(p => p.daysLeft > 0);
-          } else if (filters.status === 'expiring') {
-            filteredProducts = filteredProducts.filter(p => p.daysLeft > 0 && p.daysLeft <= 30);
-          } else if (filters.status === 'expired') {
-            filteredProducts = filteredProducts.filter(p => p.daysLeft <= 0);
-          }
-        }
-        
-        if (filters.search) {
-          const searchLower = filters.search.toLowerCase();
-          filteredProducts = filteredProducts.filter(p =>
-            p.name.toLowerCase().includes(searchLower) ||
-            p.brand.toLowerCase().includes(searchLower) ||
-            p.model.toLowerCase().includes(searchLower)
-          );
-        }
-
-        // 排序產品
-        filteredProducts.sort((a, b) => {
-          let comparison = 0;
-          
-          switch (sortBy) {
-            case 'name':
-              comparison = a.name.localeCompare(b.name);
-              break;
-            case 'brand':
-              comparison = a.brand.localeCompare(b.brand);
-              break;
-            case 'type':
-              comparison = a.type.localeCompare(b.type);
-              break;
-            case 'warrantyEndDate':
-              comparison = new Date(a.warrantyEndDate) - new Date(b.warrantyEndDate);
-              break;
-            case 'purchaseDate':
-              comparison = new Date(a.purchaseDate) - new Date(b.purchaseDate);
-              break;
-            default:
-              comparison = a.id - b.id;
-          }
-          
-          return sortOrder === 'asc' ? comparison : -comparison;
+        // 計算每個產品的保固剩餘天數
+        const productsWithDaysLeft = data.map(product => {
+          const today = new Date();
+          const endDate = new Date(product.warrantyEndDate);
+          const diffTime = endDate - today;
+          const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          return {
+            ...product,
+            daysLeft: daysLeft > 0 ? daysLeft : 0
+          };
         });
 
-        setProducts(filteredProducts);
+        setProducts(productsWithDaysLeft);
         setLoading(false);
       } catch (error) {
         console.error('獲取產品數據錯誤:', error);
@@ -269,20 +157,31 @@ const ProductList = () => {
 
   // 渲染產品卡片
   const renderProductCard = (product) => {
+    // 獲取第一張圖片的URL，確保路徑正確
+    const imageUrl = product.images && product.images.length > 0
+      ? product.images[0].startsWith('http')
+        ? product.images[0]
+        : `${process.env.REACT_APP_API_URL}${product.images[0]}`
+      : `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.jpg`;
+
     return (
       <Card
-        key={product.id}
+        key={product._id}
         hoverable
         bordered
         shadowSize="sm"
-        to={`/products/${product.id}`}
+        to={`/products/${product._id}`}
         className="overflow-hidden"
       >
         <div className="aspect-w-16 aspect-h-9 mb-4 -mx-4 -mt-4">
           <img
-            src={product.image}
+            src={imageUrl}
             alt={product.name}
             className="object-cover w-full h-40"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = `${process.env.REACT_APP_API_URL}/uploads/default-product-image.jpg`;
+            }}
           />
         </div>
         <div className="flex items-start mb-2">
