@@ -79,7 +79,7 @@ const ensureUploadDirs = () => {
   });
 
   // 確保預設圖片存在
-  const defaultImagePath = path.join('uploads/products', 'default-product-image.jpg');
+  const defaultImagePath = path.resolve(process.cwd(), 'uploads/products/default-product-image.jpg');
   if (!fs.existsSync(defaultImagePath)) {
     // 創建一個基本的預設圖片（1x1像素的透明圖片）
     const defaultImage = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');

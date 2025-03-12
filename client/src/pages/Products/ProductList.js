@@ -161,7 +161,7 @@ const ProductList = () => {
     const imageUrl = product.images && product.images.length > 0
       ? product.images[0].startsWith('http')
         ? product.images[0]
-        : `${process.env.REACT_APP_API_URL}/uploads/products/${product.images[0]}`
+        : `${process.env.REACT_APP_API_URL}${product.images[0]}`
       : `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.jpg`;
 
     return (
@@ -180,7 +180,7 @@ const ProductList = () => {
             className="object-cover w-full h-40"
             onError={(e) => {
               e.target.onerror = null;
-              e.target.src = `${process.env.REACT_APP_API_URL}/uploads/default-product-image.jpg`;
+              e.target.src = `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.jpg`;
             }}
           />
         </div>
