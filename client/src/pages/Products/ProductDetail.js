@@ -34,56 +34,36 @@ const ProductDetail = () => {
     const fetchProductDetail = async () => {
       setLoading(true);
       try {
-        // 在實際應用中，這裡會調用API
-        // const response = await api.get(`/products/${id}`);
+        console.log('正在獲取產品詳情，ID:', id);
+        const response = await api.get(`/api/products/${id}`);
+        console.log('獲取產品詳情成功:', response.data);
         
-        // 模擬API請求
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // 檢查響應格式並提取產品數據
+        const productData = response.data.data || response.data;
         
-        // 模擬產品數據
-        const mockProduct = {
-          id: parseInt(id),
-          name: 'iPhone 13 Pro',
-          type: '智慧型手機',
-          brand: 'Apple',
-          model: 'A2483',
-          serialNumber: 'FVFDY2XYN77P',
-          purchaseDate: '2021-09-30',
-          warrantyEndDate: '2023-09-30',
-          daysLeft: 92,
-          description: '128GB, 石墨色, A15晶片, 支持5G網絡',
-          notes: '購買於Apple官方網站，延長保固至2年',
-          images: [
-            'https://images.unsplash.com/photo-1611472173362-3f53dbd65d80?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8aXBob25lJTIwMTN8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60',
-            'https://images.unsplash.com/photo-1591337676887-a217a6970a8a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8aXBob25lJTIwMTMlMjBwcm98ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60'
-          ],
-          receipts: [
-            {
-              id: 1,
-              name: '購買收據.pdf',
-              url: '#',
-              uploadDate: '2021-09-30',
-              type: 'pdf'
-            }
-          ],
-          warrantyDocuments: [
-            {
-              id: 1,
-              name: '保固卡.pdf',
-              url: '#',
-              uploadDate: '2021-09-30',
-              type: 'pdf'
-            }
-          ],
-          createdAt: '2021-09-30T12:30:00Z',
-          updatedAt: '2022-10-15T09:45:00Z'
-        };
+        // 計算保固剩餘天數
+        if (productData.warrantyEndDate) {
+          const today = new Date();
+          const endDate = new Date(productData.warrantyEndDate);
+          const diffTime = endDate - today;
+          const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          productData.daysLeft = daysLeft;
+        }
         
-        setProduct(mockProduct);
+        setProduct(productData);
         setLoading(false);
       } catch (error) {
         console.error('獲取產品詳情錯誤:', error);
-        setError('獲取產品詳情時發生錯誤，請稍後再試');
+        if (error.response) {
+          console.error('錯誤響應:', error.response.data);
+          setError(`獲取產品詳情失敗: ${error.response.data.message || '未知錯誤'}`);
+        } else if (error.request) {
+          console.error('無響應:', error.request);
+          setError('服務器無響應，請檢查後端服務是否正常運行');
+        } else {
+          console.error('請求配置錯誤:', error.message);
+          setError('請求配置錯誤，請聯繫技術支持');
+        }
         setLoading(false);
       }
     };
@@ -95,12 +75,7 @@ const ProductDetail = () => {
   const handleDeleteProduct = async () => {
     setDeleteLoading(true);
     try {
-      // 在實際應用中，這裡會調用API
-      // await api.delete(`/products/${id}`);
-      
-      // 模擬API請求
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await api.delete(`/products/${id}`);
       navigate('/products', { replace: true });
     } catch (error) {
       console.error('刪除產品錯誤:', error);
@@ -152,7 +127,7 @@ const ProductDetail = () => {
           >
             返回產品列表
           </Button>
-          <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{product?.name}</h1>
         </div>
         <div className="flex space-x-2">
           <Button
@@ -202,20 +177,28 @@ const ProductDetail = () => {
         </div>
       )}
 
-      {/* 產品圖片 */}
-      <div className="mb-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <Card className="overflow-hidden">
-            <div className="relative">
-              <div className="aspect-w-16 aspect-h-9 mb-4 -mx-4 -mt-4">
+      {/* 產品圖片和基本信息 */}
+      <div className="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[300px]">
+        <div className="lg:col-span-1 h-full">
+          <Card className="overflow-hidden h-full">
+            <div className="relative h-full flex flex-col">
+              <div className="flex-1 -mx-4 -mt-4 min-h-[300px]">
                 <img
-                  src={product.images[0]}
-                  alt={product.name}
-                  className="object-cover w-full h-64"
+                  src={product?.images?.[0] ? 
+                    (product.images[0].startsWith('http') ? 
+                      product.images[0] : 
+                      `${process.env.REACT_APP_API_URL}${product.images[0]}`) : 
+                    `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.jpg`}
+                  alt={product?.name}
+                  className="object-cover w-full h-full"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.jpg`;
+                  }}
                 />
               </div>
               
-              {product.images.length > 1 && (
+              {product?.images?.length > 1 && (
                 <div className="flex mt-2 space-x-2 overflow-x-auto pb-2">
                   {product.images.map((image, index) => (
                     <div
@@ -223,9 +206,13 @@ const ProductDetail = () => {
                       className="flex-shrink-0 w-20 h-20 rounded overflow-hidden border-2 border-gray-200 hover:border-primary-500 cursor-pointer"
                     >
                       <img
-                        src={image}
+                        src={image.startsWith('http') ? image : `${process.env.REACT_APP_API_URL}${image}`}
                         alt={`${product.name} ${index + 1}`}
                         className="object-cover w-full h-full"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.jpg`;
+                        }}
                       />
                     </div>
                   ))}
@@ -238,49 +225,53 @@ const ProductDetail = () => {
           </Card>
         </div>
         
-        <div>
+        <div className="h-full flex flex-col">
           {/* 保固狀態卡片 */}
-          <Card className="mb-6">
-            <div className="text-center">
-              <h3 className="font-medium text-lg text-gray-900 mb-2">保固狀態</h3>
-              <div className={`inline-block px-4 py-2 rounded-full text-sm font-medium border ${getStatusStyle(product.daysLeft)}`}>
-                {product.daysLeft <= 0 ? '已過期' : `剩餘 ${product.daysLeft} 天`}
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-4">
-                <div className="text-center">
-                  <p className="text-sm text-gray-500">購買日期</p>
-                  <p className="font-medium">{formatDate(product.purchaseDate)}</p>
+          <Card className="mb-6 flex-1">
+            <div className="h-full flex flex-col justify-center">
+              <div className="text-center">
+                <h3 className="font-medium text-lg text-gray-900 mb-2">保固狀態</h3>
+                <div className={`inline-block px-4 py-2 rounded-full text-sm font-medium border ${getStatusStyle(product?.daysLeft)}`}>
+                  {product?.daysLeft <= 0 ? '已過期' : `剩餘 ${product?.daysLeft} 天`}
                 </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-500">保固到期</p>
-                  <p className="font-medium">{formatDate(product.warrantyEndDate)}</p>
+                <div className="mt-4 grid grid-cols-2 gap-4">
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500">購買日期</p>
+                    <p className="font-medium">{product?.purchaseDate ? formatDate(product.purchaseDate) : '未知'}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500">保固到期</p>
+                    <p className="font-medium">{product?.warrantyEndDate ? formatDate(product.warrantyEndDate) : '未知'}</p>
+                  </div>
                 </div>
               </div>
             </div>
           </Card>
           
           {/* 基本信息 */}
-          <Card>
-            <h3 className="font-medium text-lg text-gray-900 mb-4">基本信息</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-500">品牌</span>
-                <span className="font-medium text-gray-900">{product.brand}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">類型</span>
-                <span className="font-medium text-gray-900">{product.type}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">型號</span>
-                <span className="font-medium text-gray-900">{product.model}</span>
-              </div>
-              {product.serialNumber && (
+          <Card className="flex-1">
+            <div className="h-full flex flex-col">
+              <h3 className="font-medium text-lg text-gray-900 mb-4">基本信息</h3>
+              <div className="space-y-3 flex-1 flex flex-col justify-center">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">序號</span>
-                  <span className="font-medium text-gray-900">{product.serialNumber}</span>
+                  <span className="text-gray-500">品牌</span>
+                  <span className="font-medium text-gray-900">{product?.brand || '未知'}</span>
                 </div>
-              )}
+                <div className="flex justify-between">
+                  <span className="text-gray-500">類型</span>
+                  <span className="font-medium text-gray-900">{product?.type || '未知'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">型號</span>
+                  <span className="font-medium text-gray-900">{product?.model || '未知'}</span>
+                </div>
+                {product?.serialNumber && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">序號</span>
+                    <span className="font-medium text-gray-900">{product.serialNumber}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </Card>
         </div>
@@ -318,11 +309,11 @@ const ProductDetail = () => {
           {/* 產品描述 */}
           <Card className="mb-6">
             <h3 className="font-medium text-lg text-gray-900 mb-4">產品描述</h3>
-            <p className="text-gray-700">{product.description || '沒有提供產品描述'}</p>
+            <p className="text-gray-700">{product?.description || '沒有提供產品描述'}</p>
           </Card>
           
           {/* 備註 */}
-          {product.notes && (
+          {product?.notes && (
             <Card className="mb-6">
               <h3 className="font-medium text-lg text-gray-900 mb-4">備註</h3>
               <p className="text-gray-700">{product.notes}</p>
@@ -339,7 +330,7 @@ const ProductDetail = () => {
                 上傳收據
               </Button>
             </div>
-            {product.receipts && product.receipts.length > 0 ? (
+            {product?.receipts?.length > 0 ? (
               <div className="space-y-2">
                 {product.receipts.map(receipt => (
                   <div
@@ -377,7 +368,7 @@ const ProductDetail = () => {
                 上傳文件
               </Button>
             </div>
-            {product.warrantyDocuments && product.warrantyDocuments.length > 0 ? (
+            {product?.warrantyDocuments?.length > 0 ? (
               <div className="space-y-2">
                 {product.warrantyDocuments.map(doc => (
                   <div
@@ -410,7 +401,7 @@ const ProductDetail = () => {
       )}
       
       {/* 提示 */}
-      {product.daysLeft > 0 && product.daysLeft <= 30 && (
+      {product?.daysLeft > 0 && product?.daysLeft <= 30 && (
         <Alert
           variant="warning"
           title="保固即將到期"
@@ -421,7 +412,7 @@ const ProductDetail = () => {
         </Alert>
       )}
       
-      {product.daysLeft <= 0 && (
+      {product?.daysLeft <= 0 && (
         <Alert
           variant="error"
           title="保固已過期"
