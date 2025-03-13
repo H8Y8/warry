@@ -160,19 +160,15 @@ const AddProduct = () => {
 
       // 添加產品基本信息
       Object.keys(formData).forEach(key => {
-        if (key === 'purchaseDate') {
-          // 確保日期格式正確
-          formDataToSend.append(key, new Date(formData[key]).toISOString());
-        } else {
-          formDataToSend.append(key, formData[key]);
-        }
+        formDataToSend.append(key, formData[key]);
       });
 
       // 計算並添加保固到期日期
       const purchaseDate = new Date(formData.purchaseDate);
+      const warrantyDays = parseInt(formData.warrantyPeriod) * 30.4167; // 平均每月天數
       const warrantyEndDate = new Date(purchaseDate);
-      warrantyEndDate.setMonth(warrantyEndDate.getMonth() + parseInt(formData.warrantyPeriod));
-      formDataToSend.append('warrantyEndDate', warrantyEndDate.toISOString());
+      warrantyEndDate.setDate(warrantyEndDate.getDate() + Math.floor(warrantyDays) - 1); // 減一天，因為保固到當天結束
+      formDataToSend.append('warrantyEndDate', warrantyEndDate.toISOString().split('T')[0]);
 
       // 添加圖片文件
       if (images.length > 0) {
@@ -456,11 +452,13 @@ const AddProduct = () => {
                       <FontAwesomeIcon icon={faInfoCircle} className="mr-2" />
                       根據您提供的信息，此產品的保固將於 
                       <span className="font-bold mx-1">
-                        {new Date(
-                          new Date(formData.purchaseDate).setMonth(
-                            new Date(formData.purchaseDate).getMonth() + parseInt(formData.warrantyPeriod)
-                          )
-                        ).toLocaleDateString('zh-TW')}
+                        {(() => {
+                          const purchaseDate = new Date(formData.purchaseDate);
+                          const warrantyDays = parseInt(formData.warrantyPeriod) * 30.4167; // 平均每月天數
+                          const warrantyEndDate = new Date(purchaseDate);
+                          warrantyEndDate.setDate(warrantyEndDate.getDate() + Math.floor(warrantyDays) - 1); // 減一天，因為保固到當天結束
+                          return warrantyEndDate.toLocaleDateString('zh-TW');
+                        })()}
                       </span>
                       到期
                     </p>

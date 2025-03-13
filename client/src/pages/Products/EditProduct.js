@@ -50,54 +50,35 @@ const EditProduct = () => {
     const fetchProductData = async () => {
       setLoading(true);
       try {
-        // 在實際應用中，這裡會調用API
-        // const response = await api.get(`/products/${id}`);
+        const response = await api.get(`/api/products/${id}`);
+        const productData = response.data.data || response.data;
         
-        // 模擬API請求
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // 模擬產品數據
-        const mockProduct = {
-          id: parseInt(id),
-          name: 'iPhone 13 Pro',
-          type: '智慧型手機',
-          brand: 'Apple',
-          model: 'A2483',
-          serialNumber: 'FVFDY2XYN77P',
-          purchaseDate: '2021-09-30',
-          warrantyEndDate: '2023-09-30',
-          description: '128GB, 石墨色, A15晶片, 支持5G網絡',
-          notes: '購買於Apple官方網站，延長保固至2年',
-          images: [
-            'https://images.unsplash.com/photo-1611472173362-3f53dbd65d80?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8aXBob25lJTIwMTN8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60',
-            'https://images.unsplash.com/photo-1591337676887-a217a6970a8a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8aXBob25lJTIwMTMlMjBwcm98ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60'
-          ]
-        };
-
         // 計算保固期限（月數）
-        const purchaseDate = new Date(mockProduct.purchaseDate);
-        const warrantyEndDate = new Date(mockProduct.warrantyEndDate);
+        const purchaseDate = new Date(productData.purchaseDate);
+        const warrantyEndDate = new Date(productData.warrantyEndDate);
         const monthDiff = (warrantyEndDate.getFullYear() - purchaseDate.getFullYear()) * 12 + 
                          (warrantyEndDate.getMonth() - purchaseDate.getMonth());
 
         // 設置表單數據
         setFormData({
-          name: mockProduct.name,
-          type: mockProduct.type,
-          brand: mockProduct.brand,
-          model: mockProduct.model,
-          serialNumber: mockProduct.serialNumber,
-          purchaseDate: mockProduct.purchaseDate,
-          warrantyPeriod: monthDiff.toString(),
-          description: mockProduct.description,
-          notes: mockProduct.notes
+          name: productData.name || '',
+          type: productData.type || '',
+          brand: productData.brand || '',
+          model: productData.model || '',
+          serialNumber: productData.serialNumber || '',
+          purchaseDate: productData.purchaseDate ? new Date(productData.purchaseDate).toISOString().split('T')[0] : '',
+          warrantyPeriod: monthDiff.toString() || '12',
+          description: productData.description || '',
+          notes: productData.notes || ''
         });
 
         // 設置圖片
-        setImages(mockProduct.images.map(url => ({
-          preview: url,
-          isExisting: true
-        })));
+        if (productData.images && productData.images.length > 0) {
+          setImages(productData.images.map(image => ({
+            preview: image.startsWith('http') ? image : `${process.env.REACT_APP_API_URL}${image}`,
+            isExisting: true
+          })));
+        }
 
         setLoading(false);
       } catch (error) {
@@ -184,26 +165,45 @@ const EditProduct = () => {
       // 計算保固到期日期
       const purchaseDate = new Date(formData.purchaseDate);
       const warrantyEndDate = new Date(purchaseDate);
-      warrantyEndDate.setMonth(warrantyEndDate.getMonth() + parseInt(formData.warrantyPeriod));
+      const warrantyDays = parseInt(formData.warrantyPeriod) * 30.4167; // 平均每月天數
+      warrantyEndDate.setDate(warrantyEndDate.getDate() + Math.floor(warrantyDays) - 1); // 減一天，因為保固到當天結束
 
-      // 準備產品數據
-      const productData = {
-        ...formData,
-        warrantyEndDate: warrantyEndDate.toISOString().split('T')[0],
-        images: images.map(image => image.isExisting ? image.preview : URL.createObjectURL(image.file))
-      };
-
-      // 在實際應用中，這裡會調用API
-      // const response = await api.put(`/products/${id}`, productData);
+      // 準備表單數據
+      const formDataToSend = new FormData();
       
-      // 模擬API請求
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // 添加基本信息
+      Object.keys(formData).forEach(key => {
+        formDataToSend.append(key, formData[key]);
+      });
+      
+      // 添加保固到期日期
+      formDataToSend.append('warrantyEndDate', warrantyEndDate.toISOString().split('T')[0]);
+
+      // 添加現有圖片
+      const existingImages = images
+        .filter(image => image.isExisting)
+        .map(image => image.preview.replace(`${process.env.REACT_APP_API_URL}`, ''));
+      formDataToSend.append('existingImages', JSON.stringify(existingImages));
+
+      // 添加新圖片
+      images
+        .filter(image => !image.isExisting)
+        .forEach(image => {
+          formDataToSend.append('images', image.file);
+        });
+
+      // 發送更新請求
+      await api.put(`/api/products/${id}`, formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
       // 導航到產品詳情頁面
       navigate(`/products/${id}`);
     } catch (error) {
       console.error('更新產品錯誤:', error);
-      setError(error.message || '更新產品時發生錯誤，請稍後再試');
+      setError(error.response?.data?.message || error.message || '更新產品時發生錯誤，請稍後再試');
       setLoading(false);
     }
   };

@@ -79,7 +79,20 @@ const ProductList = () => {
         const params = {};
         if (filters.type) params.type = filters.type;
         if (filters.brand) params.brand = filters.brand;
-        if (filters.status) params.warranty = filters.status;
+        if (filters.status) {
+          // 根據不同的保固狀態設置不同的參數
+          switch (filters.status) {
+            case 'active':
+              params.warranty = 'active'; // 有效保固
+              break;
+            case 'expiring':
+              params.warranty = 'expiring'; // 即將到期（30天內）
+              break;
+            case 'expired':
+              params.warranty = 'expired'; // 已過期
+              break;
+          }
+        }
         if (filters.search) params.search = filters.search;
         if (sortBy) {
           params.sort = `${sortOrder === 'desc' ? '-' : ''}${sortBy}`;
@@ -105,11 +118,42 @@ const ProductList = () => {
           const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
           return {
             ...product,
-            daysLeft: daysLeft > 0 ? daysLeft : 0
+            daysLeft,
+            warrantyStatus: daysLeft <= 0 ? 'expired' : 
+                           daysLeft <= 30 ? 'expiring' : 
+                           'active'
           };
         });
 
-        setProducts(productsWithDaysLeft);
+        // 根據保固狀態篩選產品（如果有選擇狀態）
+        let filteredProducts = productsWithDaysLeft;
+        if (filters.status && filters.status !== '') {
+          filteredProducts = productsWithDaysLeft.filter(product => {
+            switch (filters.status) {
+              case 'active':
+                return product.daysLeft > 0;
+              case 'expiring':
+                return product.daysLeft > 0 && product.daysLeft <= 30;
+              case 'expired':
+                return product.daysLeft <= 0;
+              default:
+                return true;
+            }
+          });
+        }
+
+        console.log('篩選條件:', filters.status);
+        console.log('篩選前產品數量:', productsWithDaysLeft.length);
+        console.log('篩選後產品數量:', filteredProducts.length);
+        console.log('產品狀態分布:', {
+          total: productsWithDaysLeft.length,
+          valid: productsWithDaysLeft.filter(p => p.daysLeft > 0).length,
+          expired: productsWithDaysLeft.filter(p => p.daysLeft <= 0).length,
+          expiring: productsWithDaysLeft.filter(p => p.daysLeft > 0 && p.daysLeft <= 30).length,
+          active: productsWithDaysLeft.filter(p => p.daysLeft > 30).length
+        });
+
+        setProducts(filteredProducts);
         setLoading(false);
       } catch (error) {
         console.error('獲取產品數據錯誤:', error);
