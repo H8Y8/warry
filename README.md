@@ -216,6 +216,21 @@
 3.產品列表點進產品卡片的連結錯誤，未進入該產品-3/14
 
 ## 後續開發計劃
+•	註冊帳號與驗證
+	•	新用戶註冊流程
+	•	加入郵件驗證： 用戶註冊後發送驗證信，點擊連結完成郵件驗證
+	•	單一登入 (SSO) 功能
+	•	使用 OAuth2/OpenID Connect 整合第三方身份提供者（如 Google、Facebook、GitHub 等）
+	•	透過 Passport.js 或類似套件實作 SSO 流程
+	•	管理面板安全設計
+	•	JWT 驗證與 RBAC： 僅限擁有 role: "admin" 的用戶存取管理介面
+	•	IP 限制： 僅允許特定授權的 IP 存取管理面板
+	•	雙重驗證 (2FA)： 登入時加入 Google Authenticator 等 2FA 驗證
+	•	CSRF 與 CORS 防護： 確保 API 僅接受合法來源的請求，防範跨站請求偽造攻擊
+	•	忘記密碼功能
+	•	用戶提交電子郵件後生成密碼重置 Token，並發送重置連結郵件
+	•	使用 SendGrid（或其他郵件 API）搭配 Nodemailer 或官方模組進行郵件發送
+	•	在 Cloudflare DNS 中設定 TXT、CNAME、SPF、DKIM 與 DMARC 紀錄，確保郵件信譽與到達率
 - 社交分享功能
 - 多語言支持
 - 暗黑模式
