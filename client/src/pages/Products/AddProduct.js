@@ -41,6 +41,9 @@ const AddProduct = () => {
     description: '',
     notes: ''
   });
+  const [receipts, setReceipts] = useState([]);
+  const [warrantyDocs, setWarrantyDocs] = useState([]);
+  const [docError, setDocError] = useState(null);
 
   // 產品類型選項
   const productTypes = [
@@ -118,6 +121,74 @@ const AddProduct = () => {
     });
   };
 
+  // 處理文件上傳
+  const handleDocUpload = (e, type) => {
+    const files = Array.from(e.target.files);
+    
+    // 驗證文件
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+
+    const invalidFiles = files.filter(file => !allowedTypes.includes(file.type));
+    if (invalidFiles.length > 0) {
+      setDocError('請上傳 PDF、DOC、DOCX 或圖片格式的文件');
+      return;
+    }
+
+    // 驗證文件大小
+    const oversizedFiles = files.filter(file => file.size > 5 * 1024 * 1024);
+    if (oversizedFiles.length > 0) {
+      setDocError('文件大小不能超過5MB');
+      return;
+    }
+
+    setDocError(null);
+
+    // 創建文件預覽
+    const newFiles = files.map(file => ({
+      file,
+      preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : null,
+      name: file.name,
+      type: file.type
+    }));
+
+    if (type === 'receipt') {
+      setReceipts(prev => [...prev, ...newFiles]);
+    } else {
+      setWarrantyDocs(prev => [...prev, ...newFiles]);
+    }
+  };
+
+  // 移除文件
+  const handleRemoveDoc = (index, type) => {
+    if (type === 'receipt') {
+      setReceipts(prev => {
+        const newDocs = [...prev];
+        if (newDocs[index].preview) {
+          URL.revokeObjectURL(newDocs[index].preview);
+        }
+        newDocs.splice(index, 1);
+        return newDocs;
+      });
+    } else {
+      setWarrantyDocs(prev => {
+        const newDocs = [...prev];
+        if (newDocs[index].preview) {
+          URL.revokeObjectURL(newDocs[index].preview);
+        }
+        newDocs.splice(index, 1);
+        return newDocs;
+      });
+    }
+  };
+
   // 前往下一步
   const handleNextStep = () => {
     setCurrentStep(currentStep + 1);
@@ -140,7 +211,7 @@ const AddProduct = () => {
     return true; // 第三步可選
   };
 
-  // 處理表單提交
+  // 修改表單提交處理
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -155,7 +226,7 @@ const AddProduct = () => {
         throw new Error('請填寫所有必填字段');
       }
 
-      // 創建 FormData 對象來處理圖片上傳
+      // 創建 FormData 對象
       const formDataToSend = new FormData();
 
       // 添加產品基本信息
@@ -165,27 +236,31 @@ const AddProduct = () => {
 
       // 計算並添加保固到期日期
       const purchaseDate = new Date(formData.purchaseDate);
-      const warrantyDays = parseInt(formData.warrantyPeriod) * 30.4167; // 平均每月天數
+      const warrantyDays = parseInt(formData.warrantyPeriod) * 30.4167;
       const warrantyEndDate = new Date(purchaseDate);
-      warrantyEndDate.setDate(warrantyEndDate.getDate() + Math.floor(warrantyDays) - 1); // 減一天，因為保固到當天結束
+      warrantyEndDate.setDate(warrantyEndDate.getDate() + Math.floor(warrantyDays) - 1);
       formDataToSend.append('warrantyEndDate', warrantyEndDate.toISOString().split('T')[0]);
 
-      // 添加圖片文件
+      // 添加產品圖片
       if (images.length > 0) {
-        images.forEach((image, index) => {
+        images.forEach(image => {
           formDataToSend.append('productImages', image.file);
         });
       }
 
-      console.log('正在發送的數據：', {
-        name: formDataToSend.get('name'),
-        type: formDataToSend.get('type'),
-        brand: formDataToSend.get('brand'),
-        model: formDataToSend.get('model'),
-        purchaseDate: formDataToSend.get('purchaseDate'),
-        warrantyEndDate: formDataToSend.get('warrantyEndDate'),
-        imagesCount: images.length
-      });
+      // 添加收據
+      if (receipts.length > 0) {
+        receipts.forEach(receipt => {
+          formDataToSend.append('receipts', receipt.file);
+        });
+      }
+
+      // 添加保固文件
+      if (warrantyDocs.length > 0) {
+        warrantyDocs.forEach(doc => {
+          formDataToSend.append('warrantyDocuments', doc.file);
+        });
+      }
 
       // 發送請求到後端 API
       const response = await api.post('/api/products', formDataToSend, {
@@ -194,10 +269,7 @@ const AddProduct = () => {
         },
       });
 
-      console.log('產品創建成功：', response.data);
-
       if (response.data) {
-        // 添加成功後導航到產品列表頁面
         navigate('/products', { 
           state: { 
             message: '產品添加成功！',
@@ -538,9 +610,10 @@ const AddProduct = () => {
                 </Card>
               </div>
 
-              {/* 右側：圖片上傳 */}
+              {/* 右側：圖片和文件上傳 */}
               <div className="lg:col-span-3">
-                <Card className="p-6 shadow-sm border border-gray-200">
+                {/* 產品圖片上傳 */}
+                <Card className="p-6 shadow-sm border border-gray-200 mb-6">
                   <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
                     <FontAwesomeIcon icon={faImage} className="mr-2 text-blue-600" />
                     產品圖片
@@ -616,6 +689,106 @@ const AddProduct = () => {
                     <p className="mt-3 text-sm text-gray-500">
                       上傳產品圖片、收據或保固文件，以便日後查閱
                     </p>
+                  </div>
+                </Card>
+
+                {/* 收據上傳 */}
+                <Card className="p-6 shadow-sm border border-gray-200 mb-6">
+                  <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                    <FontAwesomeIcon icon={faFileAlt} className="mr-2 text-blue-600" />
+                    收據
+                  </h2>
+                  
+                  <div className="mb-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {receipts.map((doc, index) => (
+                        <div key={index} className="relative">
+                          <div className="p-4 border border-gray-200 rounded-lg">
+                            <div className="flex items-center">
+                              <div className="bg-blue-100 p-2 rounded text-blue-600 mr-3">
+                                <FontAwesomeIcon icon={doc.type.startsWith('image/') ? faImage : faFileAlt} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 truncate">
+                                  {doc.name}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveDoc(index, 'receipt')}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-md transition-all"
+                          >
+                            <FontAwesomeIcon icon={faTimes} className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                      
+                      <div className="relative">
+                        <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all">
+                          <FontAwesomeIcon icon={faFileAlt} className="h-8 w-8 text-gray-400 mb-2" />
+                          <span className="text-sm text-gray-500">上傳收據</span>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp"
+                            multiple
+                            onChange={(e) => handleDocUpload(e, 'receipt')}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* 保固文件上傳 */}
+                <Card className="p-6 shadow-sm border border-gray-200">
+                  <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                    <FontAwesomeIcon icon={faFileAlt} className="mr-2 text-green-600" />
+                    保固文件
+                  </h2>
+                  
+                  <div className="mb-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {warrantyDocs.map((doc, index) => (
+                        <div key={index} className="relative">
+                          <div className="p-4 border border-gray-200 rounded-lg">
+                            <div className="flex items-center">
+                              <div className="bg-green-100 p-2 rounded text-green-600 mr-3">
+                                <FontAwesomeIcon icon={doc.type.startsWith('image/') ? faImage : faFileAlt} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 truncate">
+                                  {doc.name}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveDoc(index, 'warranty')}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-md transition-all"
+                          >
+                            <FontAwesomeIcon icon={faTimes} className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                      
+                      <div className="relative">
+                        <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all">
+                          <FontAwesomeIcon icon={faFileAlt} className="h-8 w-8 text-gray-400 mb-2" />
+                          <span className="text-sm text-gray-500">上傳保固文件</span>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp"
+                            multiple
+                            onChange={(e) => handleDocUpload(e, 'warranty')}
+                          />
+                        </label>
+                      </div>
+                    </div>
                   </div>
                 </Card>
               </div>

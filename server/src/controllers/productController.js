@@ -17,6 +17,17 @@ exports.getProducts = async (req, res, next) => {
     // 構建查詢條件
     const query = { userId: req.user.id };
     
+    // 搜尋功能
+    if (req.query.search) {
+      const searchRegex = new RegExp(req.query.search, 'i');
+      query.$or = [
+        { name: searchRegex },
+        { model: searchRegex },
+        { serialNumber: searchRegex },
+        { brand: searchRegex }
+      ];
+    }
+    
     // 過濾條件
     if (req.query.type) {
       query.type = req.query.type;
@@ -323,6 +334,134 @@ exports.deleteProductImage = async (req, res, next) => {
       data: product
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 上傳產品相關文件
+ * @route POST /api/products/:id/upload
+ * @access Private
+ */
+exports.uploadProductFile = async (req, res, next) => {
+  try {
+    const product = await Product.findOne({
+      _id: req.params.id,
+      userId: req.user.id
+    });
+    
+    if (!product) {
+      return next(new ErrorResponse(`找不到ID為${req.params.id}的產品`, 404));
+    }
+    
+    if (!req.file) {
+      return next(new ErrorResponse('請上傳文件', 400));
+    }
+    
+    // 根據文件類型決定存儲路徑
+    let filePath;
+    if (req.file.fieldname === 'receipt') {
+      filePath = `/uploads/receipts/${req.file.filename}`;
+      if (!product.receipts) {
+        product.receipts = [filePath];
+      } else {
+        product.receipts.push(filePath);
+      }
+    } else if (req.file.fieldname === 'warrantyDocument') {
+      filePath = `/uploads/warranties/${req.file.filename}`;
+      if (!product.warrantyDocuments) {
+        product.warrantyDocuments = [filePath];
+      } else {
+        product.warrantyDocuments.push(filePath);
+      }
+    } else {
+      return next(new ErrorResponse('無效的文件類型', 400));
+    }
+    
+    await product.save();
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        filePath,
+        product
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 刪除產品文件（收據或保固文件）
+ * @route DELETE /api/products/:id/files/:type/:fileIndex
+ * @access Private
+ */
+exports.deleteProductFile = async (req, res, next) => {
+  try {
+    const { id, type, fileIndex } = req.params;
+    const index = parseInt(fileIndex, 10);
+
+    // 驗證文件類型
+    if (type !== 'receipt' && type !== 'warranty') {
+      return next(new ErrorResponse('無效的文件類型，只能是 receipt 或 warranty', 400));
+    }
+
+    // 查找產品
+    const product = await Product.findOne({
+      _id: id,
+      userId: req.user.id
+    });
+
+    if (!product) {
+      return next(new ErrorResponse(`找不到ID為${id}的產品`, 404));
+    }
+
+    // 確定要刪除的文件類型
+    const fileArray = type === 'receipt' ? product.receipts : product.warrantyDocuments;
+
+    // 檢查文件索引是否有效
+    if (index < 0 || index >= fileArray.length) {
+      return next(new ErrorResponse('無效的文件索引', 400));
+    }
+
+    // 獲取文件路徑
+    const filePath = fileArray[index];
+
+    // 從數組中移除文件
+    fileArray.splice(index, 1);
+
+    // 更新產品
+    if (type === 'receipt') {
+      product.receipts = fileArray;
+    } else {
+      product.warrantyDocuments = fileArray;
+    }
+
+    // 保存更改
+    await product.save();
+
+    // 嘗試刪除實際文件
+    const fs = require('fs');
+    const path = require('path');
+    const fullPath = path.join(__dirname, '../../', filePath);
+
+    try {
+      if (fs.existsSync(fullPath)) {
+        fs.unlinkSync(fullPath);
+        console.log(`成功刪除文件: ${fullPath}`);
+      }
+    } catch (err) {
+      console.error(`刪除文件時發生錯誤: ${err.message}`);
+      // 不中斷操作，即使文件刪除失敗
+    }
+
+    res.status(200).json({
+      success: true,
+      data: product
+    });
+  } catch (error) {
+    console.error('刪除文件時發生錯誤:', error);
     next(error);
   }
 }; 

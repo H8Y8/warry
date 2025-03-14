@@ -12,7 +12,9 @@ import {
   faFile,
   faFileAlt,
   faPlus,
-  faEllipsisV
+  faEllipsisV,
+  faSpinner,
+  faTimes
 } from '@fortawesome/free-solid-svg-icons';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -26,8 +28,13 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeleteFileConfirm, setShowDeleteFileConfirm] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const [deleteFileLoading, setDeleteFileLoading] = useState(false);
   
   // 獲取產品詳情
   useEffect(() => {
@@ -96,6 +103,87 @@ const ProductDetail = () => {
     if (daysLeft <= 0) return 'bg-red-100 text-red-700 border-red-200';
     if (daysLeft <= 30) return 'bg-yellow-100 text-yellow-700 border-yellow-200';
     return 'bg-green-100 text-green-700 border-green-200';
+  };
+  
+  // 處理文件上傳
+  const handleFileUpload = async (event, type) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // 驗證文件大小（5MB）
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError('文件大小不能超過5MB');
+      return;
+    }
+
+    // 驗證文件類型
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setUploadError('不支持的文件格式。請上傳 PDF、DOC、DOCX 或圖片格式的文件。');
+      return;
+    }
+
+    setUploadLoading(true);
+    setUploadError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append(type === 'receipt' ? 'receipt' : 'warrantyDocument', file);
+
+      const response = await api.post(
+        `/api/products/${id}/upload-${type === 'receipt' ? 'receipt' : 'warranty'}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      // 更新產品數據
+      setProduct(response.data.data.product);
+      setUploadLoading(false);
+    } catch (error) {
+      console.error('上傳文件錯誤:', error);
+      setUploadError(error.response?.data?.message || '上傳文件失敗，請稍後再試');
+      setUploadLoading(false);
+    }
+  };
+  
+  // 處理文件刪除確認
+  const handleDeleteFileConfirm = (fileIndex, type) => {
+    setFileToDelete({ fileIndex, type });
+    setShowDeleteFileConfirm(true);
+  };
+
+  // 處理文件刪除
+  const handleDeleteFile = async () => {
+    if (!fileToDelete) return;
+
+    const { fileIndex, type } = fileToDelete;
+    setDeleteFileLoading(true);
+    try {
+      const response = await api.delete(`/api/products/${id}/files/${type}/${fileIndex}`);
+      setProduct(response.data.data);
+      setDeleteFileLoading(false);
+      setShowDeleteFileConfirm(false);
+      setFileToDelete(null);
+    } catch (error) {
+      console.error('刪除文件錯誤:', error);
+      setUploadError('刪除文件失敗，請稍後再試');
+      setDeleteFileLoading(false);
+      setShowDeleteFileConfirm(false);
+      setFileToDelete(null);
+    }
   };
   
   if (loading) {
@@ -168,6 +256,39 @@ const ProductDetail = () => {
                 loading={deleteLoading}
                 disabled={deleteLoading}
                 onClick={handleDeleteProduct}
+                icon={faTrash}
+              >
+                確認刪除
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 刪除文件確認對話框 */}
+      {showDeleteFileConfirm && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md mx-auto p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">確認刪除文件</h3>
+            <p className="text-gray-600 mb-4">
+              您確定要刪除這個{fileToDelete?.type === 'receipt' ? '收據' : '保固文件'}嗎？此操作不可撤銷。
+            </p>
+            <div className="flex justify-end space-x-3">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setShowDeleteFileConfirm(false);
+                  setFileToDelete(null);
+                }}
+                disabled={deleteFileLoading}
+              >
+                取消
+              </Button>
+              <Button
+                variant="danger"
+                loading={deleteFileLoading}
+                disabled={deleteFileLoading}
+                onClick={handleDeleteFile}
                 icon={faTrash}
               >
                 確認刪除
@@ -326,29 +447,72 @@ const ProductDetail = () => {
           <Card className="mb-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-medium text-lg text-gray-900">收據</h3>
-              <Button variant="light" size="sm" icon={faPlus}>
-                上傳收據
-              </Button>
+              <div className="relative">
+                <input
+                  type="file"
+                  id="receipt-upload"
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp"
+                  onChange={(e) => handleFileUpload(e, 'receipt')}
+                  disabled={uploadLoading || deleteFileLoading}
+                />
+                <Button
+                  variant="light"
+                  size="sm"
+                  icon={uploadLoading ? faSpinner : faPlus}
+                  onClick={() => document.getElementById('receipt-upload').click()}
+                  disabled={uploadLoading || deleteFileLoading}
+                >
+                  上傳收據
+                </Button>
+              </div>
             </div>
+            {uploadError && (
+              <Alert
+                variant="error"
+                className="mb-4"
+                icon={faExclamationTriangle}
+              >
+                {uploadError}
+              </Alert>
+            )}
             {product?.receipts?.length > 0 ? (
               <div className="space-y-2">
-                {product.receipts.map(receipt => (
+                {product.receipts.map((receipt, index) => (
                   <div
-                    key={receipt.id}
+                    key={index}
                     className="flex items-center justify-between p-3 border border-gray-200 rounded-md hover:bg-gray-50"
                   >
                     <div className="flex items-center">
                       <div className="bg-blue-100 p-2 rounded text-blue-600 mr-3">
-                        <FontAwesomeIcon icon={receipt.type === 'pdf' ? faFileAlt : faFile} />
+                        <FontAwesomeIcon icon={receipt.endsWith('.pdf') ? faFileAlt : faFile} />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{receipt.name}</p>
-                        <p className="text-sm text-gray-500">上傳於 {formatDate(receipt.uploadDate)}</p>
+                        <p className="font-medium text-gray-900">收據 {index + 1}</p>
+                        <p className="text-sm text-gray-500">
+                          {new Date(product.updatedAt).toLocaleDateString('zh-TW')}
+                        </p>
                       </div>
                     </div>
-                    <Button variant="light" size="sm">
-                      查看
-                    </Button>
+                    <div className="flex items-center space-x-2">
+                      <a
+                        href={`${process.env.REACT_APP_API_URL}${receipt}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-3 py-1 border border-gray-300 text-sm leading-5 font-medium rounded-md text-gray-700 bg-white hover:text-gray-500 focus:outline-none focus:border-blue-300 focus:ring focus:ring-blue-200 active:text-gray-800 active:bg-gray-50 transition ease-in-out duration-150"
+                      >
+                        查看
+                      </a>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        icon={faTimes}
+                        onClick={() => handleDeleteFileConfirm(index, 'receipt')}
+                        disabled={deleteFileLoading}
+                      >
+                        刪除
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -364,29 +528,72 @@ const ProductDetail = () => {
           <Card className="mb-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-medium text-lg text-gray-900">保固文件</h3>
-              <Button variant="light" size="sm" icon={faPlus}>
-                上傳文件
-              </Button>
+              <div className="relative">
+                <input
+                  type="file"
+                  id="warranty-upload"
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp"
+                  onChange={(e) => handleFileUpload(e, 'warrantyDocument')}
+                  disabled={uploadLoading || deleteFileLoading}
+                />
+                <Button
+                  variant="light"
+                  size="sm"
+                  icon={uploadLoading ? faSpinner : faPlus}
+                  onClick={() => document.getElementById('warranty-upload').click()}
+                  disabled={uploadLoading || deleteFileLoading}
+                >
+                  上傳文件
+                </Button>
+              </div>
             </div>
+            {uploadError && (
+              <Alert
+                variant="error"
+                className="mb-4"
+                icon={faExclamationTriangle}
+              >
+                {uploadError}
+              </Alert>
+            )}
             {product?.warrantyDocuments?.length > 0 ? (
               <div className="space-y-2">
-                {product.warrantyDocuments.map(doc => (
+                {product.warrantyDocuments.map((doc, index) => (
                   <div
-                    key={doc.id}
+                    key={index}
                     className="flex items-center justify-between p-3 border border-gray-200 rounded-md hover:bg-gray-50"
                   >
                     <div className="flex items-center">
                       <div className="bg-green-100 p-2 rounded text-green-600 mr-3">
-                        <FontAwesomeIcon icon={doc.type === 'pdf' ? faFileAlt : faFile} />
+                        <FontAwesomeIcon icon={doc.endsWith('.pdf') ? faFileAlt : faFile} />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{doc.name}</p>
-                        <p className="text-sm text-gray-500">上傳於 {formatDate(doc.uploadDate)}</p>
+                        <p className="font-medium text-gray-900">保固文件 {index + 1}</p>
+                        <p className="text-sm text-gray-500">
+                          {new Date(product.updatedAt).toLocaleDateString('zh-TW')}
+                        </p>
                       </div>
                     </div>
-                    <Button variant="light" size="sm">
-                      查看
-                    </Button>
+                    <div className="flex items-center space-x-2">
+                      <a
+                        href={`${process.env.REACT_APP_API_URL}${doc}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-3 py-1 border border-gray-300 text-sm leading-5 font-medium rounded-md text-gray-700 bg-white hover:text-gray-500 focus:outline-none focus:border-blue-300 focus:ring focus:ring-blue-200 active:text-gray-800 active:bg-gray-50 transition ease-in-out duration-150"
+                      >
+                        查看
+                      </a>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        icon={faTimes}
+                        onClick={() => handleDeleteFileConfirm(index, 'warranty')}
+                        disabled={deleteFileLoading}
+                      >
+                        刪除
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>

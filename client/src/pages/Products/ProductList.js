@@ -22,7 +22,11 @@ import {
   faClock,
   faCalendarAlt,
   faCheck,
-  faExclamationTriangle
+  faExclamationTriangle,
+  faFileAlt,
+  faFile,
+  faReceipt,
+  faBox
 } from '@fortawesome/free-solid-svg-icons';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -69,101 +73,72 @@ const ProductList = () => {
     types: [],
     brands: []
   });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTimeout, setSearchTimeout] = useState(null);
 
   // 獲取產品列表
+  const fetchProducts = async (search = '') => {
+    setLoading(true);
+    try {
+      const response = await api.get('/api/products', {
+        params: {
+          search,
+        }
+      });
+
+      // 計算每個產品的保固剩餘天數
+      const productsWithDaysLeft = response.data.data.map(product => {
+        const today = new Date();
+        const endDate = new Date(product.warrantyEndDate);
+        const diffTime = endDate - today;
+        const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return {
+          ...product,
+          daysLeft,
+          warrantyStatus: daysLeft <= 0 ? 'expired' : 
+                         daysLeft <= 30 ? 'expiring' : 
+                         'active'
+        };
+      });
+
+      setProducts(productsWithDaysLeft);
+      setError(null);
+    } catch (error) {
+      console.error('獲取產品列表失敗:', error);
+      setError('獲取產品列表時發生錯誤');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // 處理搜尋
+  const handleSearch = (event) => {
+    const value = event.target.value;
+    setSearchTerm(value);
+    
+    // 清除之前的計時器
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+    
+    // 設置新的計時器，延遲 500ms 後執行搜尋
+    const timeoutId = setTimeout(() => {
+      fetchProducts(value);
+    }, 500);
+    
+    setSearchTimeout(timeoutId);
+  };
+  
   useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      try {
-        // 構建查詢參數
-        const params = {};
-        if (filters.type) params.type = filters.type;
-        if (filters.brand) params.brand = filters.brand;
-        if (filters.status) {
-          // 根據不同的保固狀態設置不同的參數
-          switch (filters.status) {
-            case 'active':
-              params.warranty = 'active'; // 有效保固
-              break;
-            case 'expiring':
-              params.warranty = 'expiring'; // 即將到期（30天內）
-              break;
-            case 'expired':
-              params.warranty = 'expired'; // 已過期
-              break;
-          }
-        }
-        if (filters.search) params.search = filters.search;
-        if (sortBy) {
-          params.sort = `${sortOrder === 'desc' ? '-' : ''}${sortBy}`;
-        }
-
-        // 從後端 API 獲取產品列表
-        const response = await api.get('/api/products', { params });
-        const { data } = response.data;
-
-        // 提取可用的過濾選項
-        const types = [...new Set(data.map(p => p.type))];
-        const brands = [...new Set(data.map(p => p.brand))];
-        setAvailableFilters({
-          types,
-          brands
-        });
-
-        // 計算每個產品的保固剩餘天數
-        const productsWithDaysLeft = data.map(product => {
-          const today = new Date();
-          const endDate = new Date(product.warrantyEndDate);
-          const diffTime = endDate - today;
-          const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          return {
-            ...product,
-            daysLeft,
-            warrantyStatus: daysLeft <= 0 ? 'expired' : 
-                           daysLeft <= 30 ? 'expiring' : 
-                           'active'
-          };
-        });
-
-        // 根據保固狀態篩選產品（如果有選擇狀態）
-        let filteredProducts = productsWithDaysLeft;
-        if (filters.status && filters.status !== '') {
-          filteredProducts = productsWithDaysLeft.filter(product => {
-            switch (filters.status) {
-              case 'active':
-                return product.daysLeft > 0;
-              case 'expiring':
-                return product.daysLeft > 0 && product.daysLeft <= 30;
-              case 'expired':
-                return product.daysLeft <= 0;
-              default:
-                return true;
-            }
-          });
-        }
-
-        console.log('篩選條件:', filters.status);
-        console.log('篩選前產品數量:', productsWithDaysLeft.length);
-        console.log('篩選後產品數量:', filteredProducts.length);
-        console.log('產品狀態分布:', {
-          total: productsWithDaysLeft.length,
-          valid: productsWithDaysLeft.filter(p => p.daysLeft > 0).length,
-          expired: productsWithDaysLeft.filter(p => p.daysLeft <= 0).length,
-          expiring: productsWithDaysLeft.filter(p => p.daysLeft > 0 && p.daysLeft <= 30).length,
-          active: productsWithDaysLeft.filter(p => p.daysLeft > 30).length
-        });
-
-        setProducts(filteredProducts);
-        setLoading(false);
-      } catch (error) {
-        console.error('獲取產品數據錯誤:', error);
-        setError('獲取產品數據時發生錯誤，請稍後再試');
-        setLoading(false);
+    fetchProducts();
+    
+    // 組件卸載時清除計時器
+    return () => {
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
       }
     };
-
-    fetchProducts();
-  }, [filters, sortBy, sortOrder]);
+  }, []);
 
   // 處理過濾器變更
   const handleFilterChange = (name, value) => {
@@ -246,6 +221,20 @@ const ProductList = () => {
             {product.daysLeft <= 0 ? '已過期' : `剩餘 ${product.daysLeft} 天`}
           </div>
         </div>
+        <div className="mt-4 pt-4 border-t border-gray-100 flex items-center space-x-4">
+          {product.receipts && product.receipts.length > 0 && (
+            <div className="flex items-center text-gray-500 text-sm">
+              <FontAwesomeIcon icon={faReceipt} className="mr-1" />
+              <span>收據 {product.receipts.length}</span>
+            </div>
+          )}
+          {product.warrantyDocuments && product.warrantyDocuments.length > 0 && (
+            <div className="flex items-center text-gray-500 text-sm">
+              <FontAwesomeIcon icon={faFileAlt} className="mr-1" />
+              <span>保固文件 {product.warrantyDocuments.length}</span>
+            </div>
+          )}
+        </div>
       </Card>
     );
   };
@@ -283,8 +272,8 @@ const ProductList = () => {
               type="text"
               placeholder="搜索產品名稱、品牌或型號..."
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              value={filters.search}
-              onChange={(e) => handleFilterChange('search', e.target.value)}
+              value={searchTerm}
+              onChange={handleSearch}
             />
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
               <FontAwesomeIcon icon={faSearch} />
@@ -424,10 +413,12 @@ const ProductList = () => {
         </div>
       ) : products.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-          <FontAwesomeIcon icon={faLaptop} className="text-gray-400 text-5xl mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">還沒有添加產品</h3>
-          <p className="text-gray-600 mb-6">
-            開始添加您的電子產品以追踪保固期限，避免錯過重要的維修機會。
+          <FontAwesomeIcon icon={faBox} className="text-gray-400 text-5xl mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            {searchTerm ? '沒有找到符合條件的產品' : '還沒有添加任何產品'}
+          </h3>
+          <p className="text-gray-500 mb-4">
+            {searchTerm ? '請嘗試使用其他關鍵字搜尋' : '點擊右上角的按鈕開始添加產品'}
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button 

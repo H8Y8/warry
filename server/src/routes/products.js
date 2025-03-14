@@ -12,12 +12,16 @@ const {
   updateProduct,
   deleteProduct,
   uploadProductImage,
-  deleteProductImage
+  deleteProductImage,
+  uploadProductFile,
+  deleteProductFile
 } = require('../controllers/productController');
 const { protect } = require('../middleware/auth');
 const {
   uploadProductImages,
   uploadProductImage: uploadSingleProductImage,
+  uploadReceipt,
+  uploadWarrantyDocument,
   handleUploadError
 } = require('../middleware/upload');
 
@@ -40,8 +44,15 @@ router
 // 上傳產品圖片
 router.post('/:id/upload', uploadSingleProductImage, uploadProductImage);
 
+// 上傳收據和保固文件
+router.post('/:id/upload-receipt', uploadReceipt, uploadProductFile);
+router.post('/:id/upload-warranty', uploadWarrantyDocument, uploadProductFile);
+
 // 刪除產品圖片
 router.delete('/:id/images/:imageIndex', deleteProductImage);
+
+// 刪除收據和保固文件
+router.delete('/:id/files/:type/:fileIndex', deleteProductFile);
 
 // 處理上傳錯誤
 router.use(handleUploadError);
