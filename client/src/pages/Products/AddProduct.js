@@ -218,12 +218,14 @@ const AddProduct = () => {
     setError(null);
 
     try {
+      console.log('開始提交表單...');
+      
       // 驗證必填字段
       const requiredFields = ['name', 'type', 'brand', 'model', 'purchaseDate'];
       const missingFields = requiredFields.filter(field => !formData[field]);
       
       if (missingFields.length > 0) {
-        throw new Error('請填寫所有必填字段');
+        throw new Error(`請填寫以下必填字段：${missingFields.join(', ')}`);
       }
 
       // 創建 FormData 對象
@@ -232,6 +234,7 @@ const AddProduct = () => {
       // 添加產品基本信息
       Object.keys(formData).forEach(key => {
         formDataToSend.append(key, formData[key]);
+        console.log(`添加字段 ${key}:`, formData[key]);
       });
 
       // 計算並添加保固到期日期
@@ -243,44 +246,60 @@ const AddProduct = () => {
 
       // 添加產品圖片
       if (images.length > 0) {
-        images.forEach(image => {
+        console.log(`準備上傳 ${images.length} 張產品圖片`);
+        images.forEach((image, index) => {
           formDataToSend.append('productImages', image.file);
+          console.log(`添加圖片 ${index + 1}:`, image.file.name);
         });
       }
 
       // 添加收據
       if (receipts.length > 0) {
-        receipts.forEach(receipt => {
-          formDataToSend.append('receipts', receipt.file);
+        console.log(`準備上傳 ${receipts.length} 份收據`);
+        receipts.forEach((receipt, index) => {
+          formDataToSend.append('receipt', receipt.file);
+          console.log(`添加收據 ${index + 1}:`, receipt.file.name);
         });
       }
 
       // 添加保固文件
       if (warrantyDocs.length > 0) {
-        warrantyDocs.forEach(doc => {
-          formDataToSend.append('warrantyDocuments', doc.file);
+        console.log(`準備上傳 ${warrantyDocs.length} 份保固文件`);
+        warrantyDocs.forEach((doc, index) => {
+          formDataToSend.append('warrantyDocument', doc.file);
+          console.log(`添加保固文件 ${index + 1}:`, doc.file.name);
         });
       }
 
-      // 發送請求到後端 API
+      console.log('開始發送請求...');
       const response = await api.post('/api/products', formDataToSend, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'multipart/form-data'
         },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          console.log(`上傳進度: ${percentCompleted}%`);
+        }
       });
 
-      if (response.data) {
-        navigate('/products', { 
-          state: { 
-            message: '產品添加成功！',
-            type: 'success' 
-          }
-        });
-      }
+      console.log('請求成功，響應數據:', response.data);
+      
+      // 成功後導航到產品詳情頁
+      navigate(`/products/${response.data.data._id}`);
     } catch (error) {
-      console.error('添加產品錯誤:', error);
-      const errorMessage = error.response?.data?.message || error.message || '添加產品時發生錯誤，請稍後再試';
-      setError(errorMessage);
+      console.error('創建產品時發生錯誤:', error);
+      console.error('錯誤詳情:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      
+      setError(
+        error.response?.data?.message || 
+        error.message || 
+        '創建產品時發生錯誤，請檢查所有必填字段和文件大小'
+      );
+    } finally {
       setLoading(false);
     }
   };

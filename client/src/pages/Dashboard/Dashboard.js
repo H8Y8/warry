@@ -30,82 +30,63 @@ const Dashboard = () => {
   const [upcomingWarranties, setUpcomingWarranties] = useState([]);
 
   useEffect(() => {
-    // 在真實環境中，這裡會從API獲取數據
-    // 但在這個範例中，我們使用模擬數據
+    // 從後端 API 獲取儀表板數據
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        // 模擬API請求
-        setTimeout(() => {
-          setStats({
-            totalProducts: 12,
-            expiringProducts: 3,
-            expiredProducts: 2,
-          });
-          
-          setRecentProducts([
-            {
-              id: 1,
-              name: 'iPhone 13 Pro',
-              type: '智慧型手機',
-              brand: 'Apple',
-              warrantyEndDate: '2023-09-20',
-              daysLeft: 92,
-              image: 'https://images.unsplash.com/photo-1611472173362-3f53dbd65d80?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8aXBob25lJTIwMTN8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60'
-            },
-            {
-              id: 2,
-              name: 'MacBook Pro 14"',
-              type: '筆記型電腦',
-              brand: 'Apple',
-              warrantyEndDate: '2023-11-15',
-              daysLeft: 148,
-              image: 'https://images.unsplash.com/photo-1639249227523-86c063f75d20?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTh8fG1hY2Jvb2slMjBwcm98ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60'
-            },
-            {
-              id: 3,
-              name: 'Galaxy Watch 4',
-              type: '智慧型手錶',
-              brand: 'Samsung',
-              warrantyEndDate: '2023-07-10',
-              daysLeft: 21,
-              image: 'https://images.unsplash.com/photo-1617043786394-f977fa12eddf?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTd8fGdhbGF4eSUyMHdhdGNofGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=500&q=60'
-            }
-          ]);
-          
-          setUpcomingWarranties([
-            {
-              id: 3,
-              name: 'Galaxy Watch 4',
-              type: '智慧型手錶',
-              brand: 'Samsung',
-              warrantyEndDate: '2023-07-10',
-              daysLeft: 21,
-            },
-            {
-              id: 4,
-              name: 'Bose QuietComfort 45',
-              type: '耳機',
-              brand: 'Bose',
-              warrantyEndDate: '2023-08-05',
-              daysLeft: 47,
-            },
-            {
-              id: 1,
-              name: 'iPhone 13 Pro',
-              type: '智慧型手機',
-              brand: 'Apple',
-              warrantyEndDate: '2023-09-20',
-              daysLeft: 92,
-            }
-          ]);
-          
-          setLoading(false);
-        }, 1000);
+        // 獲取產品統計數據
+        const statsResponse = await api.get('/api/products/stats');
+        setStats(statsResponse.data.data);
+
+        // 獲取最近添加的產品
+        const recentResponse = await api.get('/api/products', {
+          params: {
+            sort: '-createdAt',
+            limit: 3
+          }
+        });
+
+        // 計算每個產品的保固剩餘天數
+        const productsWithDaysLeft = recentResponse.data.data.map(product => {
+          const today = new Date();
+          const endDate = new Date(product.warrantyEndDate);
+          const diffTime = endDate - today;
+          const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          return {
+            ...product,
+            daysLeft
+          };
+        });
         
+        setRecentProducts(productsWithDaysLeft);
+
+        // 獲取即將到期的保固
+        const warrantiesResponse = await api.get('/api/products', {
+          params: {
+            sort: 'warrantyEndDate',
+            warranty: 'expiring',
+            limit: 5
+          }
+        });
+
+        // 計算即將到期產品的剩餘天數
+        const warrantiesWithDaysLeft = warrantiesResponse.data.data.map(product => {
+          const today = new Date();
+          const endDate = new Date(product.warrantyEndDate);
+          const diffTime = endDate - today;
+          const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          return {
+            ...product,
+            daysLeft
+          };
+        });
+
+        setUpcomingWarranties(warrantiesWithDaysLeft);
+        setError(null);
       } catch (error) {
         console.error('獲取儀表板數據錯誤:', error);
         setError('獲取數據時發生錯誤，請稍後再試');
+      } finally {
         setLoading(false);
       }
     };
@@ -265,10 +246,10 @@ const Dashboard = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {upcomingWarranties.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50">
+                  <tr key={product._id} className="hover:bg-gray-50">
                     <td className="px-4 py-4 whitespace-nowrap">
                       <Link 
-                        to={`/products/${product.id}`}
+                        to={`/products/${product._id}`}
                         className="text-primary-600 hover:text-primary-900 font-medium"
                       >
                         {product.name}
@@ -322,18 +303,26 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {recentProducts.map((product) => (
               <Card
-                key={product.id}
+                key={product._id}
                 hoverable
                 bordered
                 shadowSize="sm"
-                to={`/products/${product.id}`}
+                to={`/products/${product._id}`}
                 className="overflow-hidden"
               >
                 <div className="aspect-w-16 aspect-h-9 mb-4 -mx-4 -mt-4">
                   <img
-                    src={product.image}
+                    src={product.images && product.images.length > 0
+                      ? product.images[0].startsWith('http')
+                        ? product.images[0]
+                        : `${process.env.REACT_APP_API_URL}${product.images[0]}`
+                      : `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.jpg`}
                     alt={product.name}
                     className="object-cover w-full h-40"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.jpg`;
+                    }}
                   />
                 </div>
                 <h3 className="font-medium text-lg text-gray-900 mb-1">{product.name}</h3>

@@ -14,7 +14,8 @@ const {
   uploadProductImage,
   deleteProductImage,
   uploadProductFile,
-  deleteProductFile
+  deleteProductFile,
+  getProductStats
 } = require('../controllers/productController');
 const { protect } = require('../middleware/auth');
 const {
@@ -22,17 +23,21 @@ const {
   uploadProductImage: uploadSingleProductImage,
   uploadReceipt,
   uploadWarrantyDocument,
-  handleUploadError
+  handleUploadError,
+  uploadMultipleFiles
 } = require('../middleware/upload');
 
 // 所有路由都需要認證
 router.use(protect);
 
+// 獲取產品統計數據
+router.get('/stats', getProductStats);
+
 // 獲取所有產品 / 創建產品
 router
   .route('/')
   .get(getProducts)
-  .post(uploadProductImages, createProduct);
+  .post(uploadMultipleFiles, createProduct);
 
 // 獲取單個產品 / 更新產品 / 刪除產品
 router

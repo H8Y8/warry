@@ -140,24 +140,25 @@ exports.createProduct = async (req, res, next) => {
     // 添加用戶ID到請求體
     req.body.userId = req.user.id;
     
-    // 處理上傳的圖片
-    if (req.files && req.files.length > 0) {
-      console.log(`處理 ${req.files.length} 張上傳的圖片`);
-      req.files.forEach(file => {
-        console.log('文件信息:', {
-          fieldname: file.fieldname,
-          originalname: file.originalname,
-          mimetype: file.mimetype,
-          filename: file.filename,
-          path: file.path,
-          size: file.size
-        });
-      });
-      
-      req.body.images = req.files.map(file => `/uploads/products/${file.filename}`);
-      console.log('設置的圖片路徑:', req.body.images);
-    } else {
-      console.log('沒有上傳圖片');
+    // 處理上傳的產品圖片
+    if (req.files && req.files.productImages) {
+      console.log(`處理 ${req.files.productImages.length} 張產品圖片`);
+      req.body.images = req.files.productImages.map(file => `/uploads/products/${file.filename}`);
+      console.log('設置的產品圖片路徑:', req.body.images);
+    }
+
+    // 處理上傳的收據
+    if (req.files && req.files.receipt) {
+      console.log(`處理 ${req.files.receipt.length} 份收據`);
+      req.body.receipts = req.files.receipt.map(file => `/uploads/receipts/${file.filename}`);
+      console.log('設置的收據路徑:', req.body.receipts);
+    }
+
+    // 處理上傳的保固文件
+    if (req.files && req.files.warrantyDocument) {
+      console.log(`處理 ${req.files.warrantyDocument.length} 份保固文件`);
+      req.body.warrantyDocuments = req.files.warrantyDocument.map(file => `/uploads/warranties/${file.filename}`);
+      console.log('設置的保固文件路徑:', req.body.warrantyDocuments);
     }
     
     const product = await Product.create(req.body);
@@ -462,6 +463,48 @@ exports.deleteProductFile = async (req, res, next) => {
     });
   } catch (error) {
     console.error('刪除文件時發生錯誤:', error);
+    next(error);
+  }
+};
+
+/**
+ * 獲取產品統計數據
+ * @route GET /api/products/stats
+ * @access Private
+ */
+exports.getProductStats = async (req, res, next) => {
+  try {
+    const today = new Date();
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(today.getDate() + 30);
+
+    // 獲取總產品數量
+    const totalProducts = await Product.countDocuments({ userId: req.user.id });
+
+    // 獲取即將到期的產品數量（30天內）
+    const expiringProducts = await Product.countDocuments({
+      userId: req.user.id,
+      warrantyEndDate: {
+        $gt: today,
+        $lte: thirtyDaysFromNow
+      }
+    });
+
+    // 獲取已過期的產品數量
+    const expiredProducts = await Product.countDocuments({
+      userId: req.user.id,
+      warrantyEndDate: { $lte: today }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalProducts,
+        expiringProducts,
+        expiredProducts
+      }
+    });
+  } catch (error) {
     next(error);
   }
 }; 

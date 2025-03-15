@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faLock, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import Alert from '../../components/ui/Alert';
@@ -15,6 +15,7 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginError, setLoginError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
 
   const handleChange = (e) => {
@@ -30,18 +31,26 @@ const Login = () => {
         [name]: null,
       });
     }
+    // 清除全局登入錯誤
+    if (loginError) {
+      setLoginError(null);
+    }
   };
 
   const validateForm = () => {
     const newErrors = {};
+    // 電子郵件驗證
     if (!formData.email) {
       newErrors.email = '請輸入電子郵件';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = '請輸入有效的電子郵件地址';
     }
     
+    // 密碼驗證
     if (!formData.password) {
       newErrors.password = '請輸入密碼';
+    } else if (formData.password.length < 6) {
+      newErrors.password = '密碼長度至少需要6個字符';
     }
     
     setErrors(newErrors);
@@ -61,7 +70,13 @@ const Login = () => {
     try {
       const result = await login(formData.email, formData.password);
       if (!result.success) {
-        setLoginError(result.message);
+        if (result.message.includes('password')) {
+          setErrors({ password: '密碼錯誤' });
+        } else if (result.message.includes('email')) {
+          setErrors({ email: '此電子郵件尚未註冊' });
+        } else {
+          setLoginError(result.message || '登入失敗，請檢查您的帳號密碼');
+        }
       }
     } catch (error) {
       setLoginError('登入過程中發生錯誤，請稍後再試');
@@ -69,6 +84,10 @@ const Login = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -95,7 +114,7 @@ const Login = () => {
         </Alert>
       )}
       
-      <form className="space-y-6" onSubmit={handleSubmit}>
+      <form className="space-y-6" onSubmit={handleSubmit} noValidate>
         <Input
           id="email"
           name="email"
@@ -108,21 +127,32 @@ const Login = () => {
           icon={faEnvelope}
           error={errors.email}
           autoComplete="email"
+          className={errors.email ? 'border-red-500' : ''}
         />
         
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          label="密碼"
-          value={formData.password}
-          onChange={handleChange}
-          placeholder="您的密碼"
-          required
-          icon={faLock}
-          error={errors.password}
-          autoComplete="current-password"
-        />
+        <div className="relative">
+          <Input
+            id="password"
+            name="password"
+            type={showPassword ? "text" : "password"}
+            label="密碼"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="您的密碼"
+            required
+            icon={faLock}
+            error={errors.password}
+            autoComplete="current-password"
+            className={errors.password ? 'border-red-500' : ''}
+          />
+          <button
+            type="button"
+            onClick={togglePasswordVisibility}
+            className="absolute right-3 top-9 text-gray-400 hover:text-gray-600 focus:outline-none"
+          >
+            <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+          </button>
+        </div>
         
         <div className="flex items-center justify-between">
           <div className="flex items-center">
@@ -153,7 +183,7 @@ const Login = () => {
             loading={isSubmitting}
             disabled={isSubmitting}
           >
-            登入
+            {isSubmitting ? '登入中...' : '登入'}
           </Button>
         </div>
       </form>

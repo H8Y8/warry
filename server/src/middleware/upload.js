@@ -20,14 +20,14 @@ exports.uploadProductImage = upload.single('productImage');
 exports.uploadProductImages = upload.array('productImages', 5); // 最多5張圖片
 
 /**
- * 處理收據上傳
+ * 處理收據上傳（支持多個文件）
  */
-exports.uploadReceipt = upload.single('receipt');
+exports.uploadReceipt = upload.array('receipt', 5); // 最多5個收據
 
 /**
- * 處理保固文件上傳
+ * 處理保固文件上傳（支持多個文件）
  */
-exports.uploadWarrantyDocument = upload.single('warrantyDocument');
+exports.uploadWarrantyDocument = upload.array('warrantyDocument', 5); // 最多5個保固文件
 
 /**
  * 處理個人資料圖片上傳
@@ -38,6 +38,15 @@ exports.uploadProfilePicture = upload.single('profilePicture');
  * 處理AI分析的產品圖片上傳
  */
 exports.uploadAIAnalysisImage = upload.single('aiAnalysisImage');
+
+/**
+ * 處理多個文件上傳的中間件
+ */
+exports.uploadMultipleFiles = upload.fields([
+  { name: 'productImages', maxCount: 5 },
+  { name: 'receipt', maxCount: 5 },
+  { name: 'warrantyDocument', maxCount: 5 }
+]);
 
 /**
  * 文件上傳錯誤處理
