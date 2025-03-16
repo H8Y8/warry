@@ -16,15 +16,15 @@ const UserSchema = new mongoose.Schema({
     unique: true,
     trim: true,
     minlength: [3, '用戶名至少需要3個字符'],
-    maxlength: [20, '用戶名不能超過20個字符']
+    maxlength: [50, '用戶名不能超過50個字符']
   },
   email: {
     type: String,
     required: [true, '請提供電子郵件'],
     unique: true,
     match: [
-      /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
-      '請提供有效的電子郵件地址'
+      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+      '請提供有效的電子郵件'
     ]
   },
   password: {
@@ -35,9 +35,10 @@ const UserSchema = new mongoose.Schema({
   },
   fullName: {
     type: String,
+    required: [true, '請提供姓名'],
     trim: true
   },
-  profilePicture: {
+  avatar: {
     type: String,
     default: ''
   },
@@ -60,6 +61,38 @@ const UserSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now
+  },
+  // 添加通知設定欄位
+  notificationSettings: {
+    enabled: {
+      type: Boolean,
+      default: true
+    },
+    notificationEmail: {
+      type: String,
+      default: ''
+    },
+    useAccountEmail: {
+      type: Boolean,
+      default: true
+    },
+    notifyBefore: {
+      type: Number,
+      default: 30
+    },
+    frequency: {
+      type: String,
+      enum: ['once', 'daily', 'weekly'],
+      default: 'once'
+    },
+    notifyOnExpiry: {
+      type: Boolean,
+      default: true
+    },
+    notifyAfterExpiry: {
+      type: Boolean,
+      default: true
+    }
   }
 }, {
   timestamps: true

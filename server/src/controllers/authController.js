@@ -59,14 +59,14 @@ exports.login = async (req, res, next) => {
     const user = await User.findOne({ email }).select('+password');
     
     if (!user) {
-      return next(new ErrorResponse('無效的憑證', 401));
+      return next(new ErrorResponse('找不到此電子郵件帳號', 401));
     }
     
     // 檢查密碼是否匹配
     const isMatch = await user.matchPassword(password);
     
     if (!isMatch) {
-      return next(new ErrorResponse('無效的憑證', 401));
+      return next(new ErrorResponse('密碼錯誤', 401));
     }
     
     // 發送令牌響應

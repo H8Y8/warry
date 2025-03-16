@@ -66,21 +66,34 @@ const Login = () => {
     
     setIsSubmitting(true);
     setLoginError(null);
+    setErrors({});
     
     try {
       const result = await login(formData.email, formData.password);
       if (!result.success) {
-        if (result.message.includes('password')) {
-          setErrors({ password: '密碼錯誤' });
-        } else if (result.message.includes('email')) {
-          setErrors({ email: '此電子郵件尚未註冊' });
+        const errorMessage = result.message;
+        if (errorMessage.includes('密碼錯誤')) {
+          setErrors(prev => ({
+            ...prev,
+            password: '密碼錯誤'
+          }));
+          // 只清除密碼欄位
+          setFormData(prev => ({
+            ...prev,
+            password: ''
+          }));
+        } else if (errorMessage.includes('找不到此電子郵件')) {
+          setErrors(prev => ({
+            ...prev,
+            email: '找不到此電子郵件帳號'
+          }));
         } else {
-          setLoginError(result.message || '登入失敗，請檢查您的帳號密碼');
+          setLoginError(errorMessage);
         }
       }
     } catch (error) {
-      setLoginError('登入過程中發生錯誤，請稍後再試');
       console.error('Login error:', error);
+      setLoginError('登入過程中發生錯誤，請稍後再試');
     } finally {
       setIsSubmitting(false);
     }

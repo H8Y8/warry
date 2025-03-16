@@ -135,6 +135,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // 更新用戶資料
+  const updateUserProfile = async (userData) => {
+    setUser(prevUser => ({
+      ...prevUser,
+      ...userData
+    }));
+  };
+
   // 檢查token是否有效
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -155,6 +163,7 @@ export const AuthProvider = ({ children }) => {
     forgotPassword,
     resetPassword,
     updatePassword,
+    updateUserProfile,
     checkAuthStatus
   };
 

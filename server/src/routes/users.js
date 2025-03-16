@@ -9,10 +9,15 @@ const {
   getUserProfile,
   updateUserProfile,
   updateUserSettings,
-  deleteUser
+  deleteUser,
+  changePassword,
+  updateAvatar,
+  updateProfile,
+  getNotificationSettings,
+  updateNotificationSettings
 } = require('../controllers/userController');
 const { protect } = require('../middleware/auth');
-const { uploadProfilePicture } = require('../middleware/upload');
+const { uploadAvatar } = require('../middleware/upload');
 
 // 所有路由都需要認證
 router.use(protect);
@@ -21,12 +26,23 @@ router.use(protect);
 router.get('/profile', getUserProfile);
 
 // 更新用戶資料
-router.put('/profile', uploadProfilePicture, updateUserProfile);
+router.put('/profile', uploadAvatar, updateProfile);
 
 // 更新用戶設置
 router.put('/settings', updateUserSettings);
 
+// 更改密碼
+router.put('/change-password', changePassword);
+
 // 刪除用戶
 router.delete('/', deleteUser);
+
+// 更新頭像
+router.post('/avatar', uploadAvatar, updateAvatar);
+
+// 添加通知設定路由
+router.route('/notification-settings')
+  .get(getNotificationSettings)
+  .put(updateNotificationSettings);
 
 module.exports = router; 

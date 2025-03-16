@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faEnvelope, faLock, faSave } from '@fortawesome/free-solid-svg-icons';
+import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
 
 const Profile = () => {
   const [user, setUser] = useState({
@@ -13,17 +15,30 @@ const Profile = () => {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const { updateUserProfile } = useAuth();
 
   useEffect(() => {
-    // 在實際應用中，這裡會從 API 獲取用戶資料
-    // 目前使用模擬數據
-    setUser({
-      ...user,
-      fullName: '張三',
-      email: 'zhangsan@example.com',
-      username: 'zhangsan'
-    });
+    fetchUserProfile();
   }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await api.get('/api/auth/me');
+      const userData = response.data.data;
+      setUser(prev => ({
+        ...prev,
+        fullName: userData.fullName,
+        email: userData.email,
+        username: userData.username
+      }));
+    } catch (error) {
+      console.error('獲取用戶資料失敗:', error);
+      setMessage({
+        type: 'error',
+        text: '獲取用戶資料失敗'
+      });
+    }
+  };
 
   const handleChange = (e) => {
     setUser({
@@ -32,19 +47,32 @@ const Profile = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     
-    // 這裡會有 API 呼叫來更新用戶資料
-    // 模擬 API 呼叫
-    setTimeout(() => {
-      setLoading(false);
-      setMessage({
-        type: 'success',
-        text: '個人資料已成功更新'
+    try {
+      const response = await api.put('/api/users/profile', {
+        fullName: user.fullName
       });
-    }, 1000);
+      
+      if (response.data.success) {
+        setMessage({
+          type: 'success',
+          text: '個人資料已成功更新'
+        });
+        // 更新全局用戶狀態
+        updateUserProfile(response.data.data);
+      }
+    } catch (error) {
+      console.error('更新個人資料失敗:', error);
+      setMessage({
+        type: 'error',
+        text: '更新個人資料失敗'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -58,8 +86,18 @@ const Profile = () => {
       )}
       
       <div className="bg-white shadow-md rounded-lg p-6">
+        <div className="flex justify-center mb-8">
+          <div className="w-32 h-32 rounded-full overflow-hidden">
+            <div className="w-full h-full flex items-center justify-center bg-primary-600 text-white text-4xl font-bold">
+              {user.username ? user.username.charAt(0).toUpperCase() : (
+                <FontAwesomeIcon icon={faUser} className="text-white text-4xl" />
+              )}
+            </div>
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             <div>
               <label className="block text-gray-700 mb-2" htmlFor="fullName">
                 姓名
@@ -93,33 +131,11 @@ const Profile = () => {
                   id="email"
                   name="email"
                   value={user.email}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="您的電子郵件"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-gray-700 mb-2" htmlFor="username">
-                用戶名
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FontAwesomeIcon icon={faUser} className="text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  value={user.username}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="您的用戶名"
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 cursor-not-allowed"
                   disabled
                 />
               </div>
-              <p className="text-sm text-gray-500 mt-1">用戶名無法修改</p>
+              <p className="text-sm text-gray-500 mt-1">電子郵件無法修改</p>
             </div>
           </div>
           

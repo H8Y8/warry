@@ -36,7 +36,7 @@ const MainLayout = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
       {/* 側邊欄 */}
       <Sidebar 
         isOpen={sidebarOpen} 
@@ -46,7 +46,7 @@ const MainLayout = () => {
       />
 
       {/* 主內容區 */}
-      <div className="flex flex-col flex-1 w-full overflow-hidden">
+      <div className="flex flex-col flex-1 w-0 min-w-0 overflow-hidden">
         {/* 導航欄 */}
         <Navbar 
           onToggleSidebar={toggleSidebar}
@@ -55,8 +55,10 @@ const MainLayout = () => {
         />
 
         {/* 頁面內容 */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 md:p-6">
-          <Outlet />
+        <main className="flex-1 relative overflow-y-auto focus:outline-none bg-gray-50 px-2 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6">
+          <div className="mx-auto max-w-full">
+            <Outlet />
+          </div>
         </main>
 
         {/* 頁腳 */}

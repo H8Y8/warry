@@ -48,19 +48,18 @@ const errorHandler = (err, req, res, next) => {
   
   // JWT 錯誤
   if (err.name === 'JsonWebTokenError') {
-    error = new ErrorResponse('無效的令牌，請重新登入', 401);
+    error = new ErrorResponse('無效的認證令牌', 401);
   }
   
   // JWT 過期錯誤
   if (err.name === 'TokenExpiredError') {
-    error = new ErrorResponse('令牌已過期，請重新登入', 401);
+    error = new ErrorResponse('認證令牌已過期', 401);
   }
   
   // 發送錯誤響應
   res.status(error.statusCode || 500).json({
     success: false,
-    error: error.message || '服務器錯誤',
-    stack: process.env.NODE_ENV === 'production' ? undefined : err.stack
+    error: error.message || '伺服器錯誤'
   });
 };
 

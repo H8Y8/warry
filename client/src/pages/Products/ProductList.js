@@ -179,9 +179,9 @@ const ProductList = () => {
     // 獲取第一張圖片的URL，確保路徑正確
     const imageUrl = product.images && product.images.length > 0
       ? product.images[0].startsWith('http')
-        ? product.images[0]
-        : `${process.env.REACT_APP_API_URL}${product.images[0]}`
-      : `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.jpg`;
+        ? product.images[0] 
+        : `${process.env.REACT_APP_API_URL}/uploads/products/${product.images[0].split('/').pop()}`
+      : null;
 
     return (
       <Card

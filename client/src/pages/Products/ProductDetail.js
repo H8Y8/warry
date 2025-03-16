@@ -308,13 +308,13 @@ const ProductDetail = () => {
                   src={product?.images?.[0] ? 
                     (product.images[0].startsWith('http') ? 
                       product.images[0] : 
-                      `${process.env.REACT_APP_API_URL}${product.images[0]}`) : 
-                    `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.jpg`}
+                      `${process.env.REACT_APP_API_URL}/uploads/products/${product.images[0].split('/').pop()}`) : 
+                    null}
                   alt={product?.name}
                   className="object-cover w-full h-full"
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.jpg`;
+                    e.target.src = `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.svg`;
                   }}
                 />
               </div>
@@ -327,12 +327,12 @@ const ProductDetail = () => {
                       className="flex-shrink-0 w-20 h-20 rounded overflow-hidden border-2 border-gray-200 hover:border-primary-500 cursor-pointer"
                     >
                       <img
-                        src={image.startsWith('http') ? image : `${process.env.REACT_APP_API_URL}${image}`}
+                        src={image.startsWith('http') ? image : `${process.env.REACT_APP_API_URL}/uploads/products/${image.split('/').pop()}`}
                         alt={`${product.name} ${index + 1}`}
                         className="object-cover w-full h-full"
                         onError={(e) => {
                           e.target.onerror = null;
-                          e.target.src = `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.jpg`;
+                          e.target.src = `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.svg`;
                         }}
                       />
                     </div>
@@ -496,7 +496,7 @@ const ProductDetail = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <a
-                        href={`${process.env.REACT_APP_API_URL}${receipt}`}
+                        href={`${process.env.REACT_APP_API_URL.replace(/\/$/, '')}/${receipt.replace(/^\//, '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center px-3 py-1 border border-gray-300 text-sm leading-5 font-medium rounded-md text-gray-700 bg-white hover:text-gray-500 focus:outline-none focus:border-blue-300 focus:ring focus:ring-blue-200 active:text-gray-800 active:bg-gray-50 transition ease-in-out duration-150"
@@ -577,7 +577,7 @@ const ProductDetail = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <a
-                        href={`${process.env.REACT_APP_API_URL}${doc}`}
+                        href={`${process.env.REACT_APP_API_URL.replace(/\/$/, '')}/${doc.replace(/^\//, '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center px-3 py-1 border border-gray-300 text-sm leading-5 font-medium rounded-md text-gray-700 bg-white hover:text-gray-500 focus:outline-none focus:border-blue-300 focus:ring focus:ring-blue-200 active:text-gray-800 active:bg-gray-50 transition ease-in-out duration-150"

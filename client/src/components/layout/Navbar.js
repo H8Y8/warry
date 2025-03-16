@@ -3,14 +3,16 @@ import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faBars, faBell, faUser, faSignOutAlt, 
-  faCog, faQuestionCircle 
+  faCog, faQuestionCircle, faTimes 
 } from '@fortawesome/free-solid-svg-icons';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Navbar = ({ onToggleSidebar, user, onLogout }) => {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const profileDropdownRef = useRef(null);
   const notificationsRef = useRef(null);
+  const { logout, isAuthenticated } = useAuth();
 
   const toggleProfileDropdown = () => {
     setProfileDropdownOpen(!profileDropdownOpen);
@@ -46,6 +48,24 @@ const Navbar = ({ onToggleSidebar, user, onLogout }) => {
     };
   }, []);
 
+  const handleLogout = async () => {
+    await logout();
+  };
+
+  const getAvatarContent = () => {
+    if (user?.username) {
+      return (
+        <div className="h-8 w-8 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-lg">
+          {user.username.charAt(0).toUpperCase()}
+        </div>
+      );
+    }
+    
+    return (
+      <FontAwesomeIcon icon={faUser} className="h-4 w-4 text-gray-500" />
+    );
+  };
+
   // 模擬通知數據
   const notifications = [
     { id: 1, text: 'iPhone 13的保固即將到期', time: '2小時前', read: false },
@@ -62,7 +82,8 @@ const Navbar = ({ onToggleSidebar, user, onLogout }) => {
             <div className="flex items-center md:hidden">
               <button
                 onClick={onToggleSidebar}
-                className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                className="text-gray-500 hover:text-gray-700 focus:outline-none p-2 rounded-md"
+                aria-label="開啟側邊欄選單"
               >
                 <FontAwesomeIcon icon={faBars} className="h-6 w-6" />
               </button>
@@ -145,16 +166,8 @@ const Navbar = ({ onToggleSidebar, user, onLogout }) => {
                 className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 focus:outline-none p-2 rounded-full hover:bg-gray-100"
               >
                 <span className="sr-only">打開用戶菜單</span>
-                <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                  {user?.profilePicture ? (
-                    <img 
-                      src={user.profilePicture} 
-                      alt={user.fullName || user.username}
-                      className="h-8 w-8 rounded-full object-cover"
-                    />
-                  ) : (
-                    <FontAwesomeIcon icon={faUser} className="h-4 w-4 text-gray-500" />
-                  )}
+                <div className="h-8 w-8 rounded-full flex items-center justify-center overflow-hidden">
+                  {getAvatarContent()}
                 </div>
                 <span className="hidden md:block text-sm font-medium">
                   {user?.fullName || user?.username || '用戶'}
@@ -187,7 +200,7 @@ const Navbar = ({ onToggleSidebar, user, onLogout }) => {
                       幫助
                     </Link>
                     <button
-                      onClick={onLogout}
+                      onClick={handleLogout}
                       className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" />

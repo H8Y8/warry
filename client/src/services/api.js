@@ -37,10 +37,22 @@ api.interceptors.response.use(
   (error) => {
     if (error.response) {
       console.error('響應錯誤:', error.response.status, error.response.data);
-      // 處理401未授權錯誤（token過期等）
-      if (error.response.status === 401) {
+      
+      const isLoginRequest = error.config.url.includes('/auth/login');
+      const isLoginPage = window.location.pathname === '/login';
+      
+      // 如果是登入請求，直接返回錯誤，不執行任何重定向
+      if (isLoginRequest) {
+        return Promise.reject(error);
+      }
+      
+      // 對於其他 401 錯誤（非登入請求），執行登出操作
+      if (error.response.status === 401 && !isLoginPage) {
         localStorage.removeItem('token');
-        if (window.location.pathname !== '/login') {
+        delete api.defaults.headers.common['Authorization'];
+        
+        // 如果已經在登入頁面，不需要重定向
+        if (!isLoginPage) {
           window.location.href = '/login';
         }
       }

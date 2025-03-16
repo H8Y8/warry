@@ -11,6 +11,8 @@ import {
   faKey
 } from '@fortawesome/free-solid-svg-icons';
 import api from '../../services/api';
+import Button from '../../components/ui/Button';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Profile = () => {
   const [user, setUser] = useState({
@@ -33,23 +35,26 @@ const Profile = () => {
   });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordErrors, setPasswordErrors] = useState({});
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const { updateUserProfile } = useAuth();
 
   // 獲取用戶資料
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const response = await api.get('/api/users/profile');
-        const { fullName, email, username } = response.data.data;
-        setUser(prevUser => ({
-          ...prevUser,
-          fullName,
-          email,
-          username
+        const response = await api.get('/api/auth/me');
+        const userData = response.data.data;
+        setUser(prev => ({
+          ...prev,
+          fullName: userData.fullName,
+          email: userData.email,
+          username: userData.username
         }));
       } catch (error) {
+        console.error('獲取用戶資料失敗:', error);
         setMessage({
           type: 'error',
-          text: error.response?.data?.message || '獲取個人資料失敗'
+          text: '獲取用戶資料失敗'
         });
       }
     };
@@ -143,31 +148,29 @@ const Profile = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleProfileSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(prev => ({ ...prev, profile: true }));
     setMessage({ type: '', text: '' });
 
     try {
-      // 準備更新數據
-      const updateData = {
-        fullName: user.fullName,
-        email: user.email
-      };
-
-      // 發送更新請求
-      const response = await api.put('/api/users/profile', updateData);
-
-      // 更新成功
-      setMessage({
-        type: 'success',
-        text: '個人資料已成功更新'
+      const response = await api.put('/api/users/profile', {
+        fullName: user.fullName
       });
-
+      
+      if (response.data.success) {
+        setMessage({
+          type: 'success',
+          text: '個人資料已成功更新'
+        });
+        // 更新全局用戶狀態
+        updateUserProfile(response.data.data);
+      }
     } catch (error) {
+      console.error('更新個人資料失敗:', error);
       setMessage({
         type: 'error',
-        text: error.response?.data?.message || error.message || '更新個人資料失敗'
+        text: '更新個人資料失敗'
       });
     } finally {
       setLoading(prev => ({ ...prev, profile: false }));
@@ -191,29 +194,38 @@ const Profile = () => {
         newPassword: user.newPassword
       };
 
-      // 發送更新請求
-      const response = await api.put('/api/users/profile', updateData);
+      // 使用專門的密碼更新端點
+      const response = await api.put('/api/users/change-password', updateData);
 
-      // 更新成功
-      setMessage({
-        type: 'success',
-        text: '密碼已成功更新'
-      });
-
-      // 清除密碼字段
-      setUser(prev => ({
-        ...prev,
-        oldPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      }));
-      setIsChangingPassword(false);
-
+      if (response.data.success) {
+        // 清除密碼字段
+        setUser(prev => ({
+          ...prev,
+          oldPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        }));
+        setIsChangingPassword(false);
+        // 顯示成功對話框
+        setShowSuccessDialog(true);
+      }
     } catch (error) {
-      setMessage({
-        type: 'error',
-        text: error.response?.data?.message || error.message || '更新密碼失敗'
-      });
+      // 處理特定的錯誤情況
+      if (error.response?.status === 401) {
+        setPasswordErrors(prev => ({
+          ...prev,
+          oldPassword: '當前密碼不正確'
+        }));
+        setMessage({
+          type: 'error',
+          text: '當前密碼不正確，請重新輸入'
+        });
+      } else {
+        setMessage({
+          type: 'error',
+          text: error.response?.data?.message || '更新密碼失敗'
+        });
+      }
     } finally {
       setLoading(prev => ({ ...prev, password: false }));
     }
@@ -236,10 +248,10 @@ const Profile = () => {
       )}
       
       <div className="bg-white shadow-md rounded-lg p-6 mb-8">
-        <form onSubmit={handleProfileSubmit}>
+        <form onSubmit={handleSubmit}>
           {/* 基本資料部分 */}
           <h2 className="text-xl font-semibold mb-6">基本資料</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 gap-6 mb-8">
             <div>
               <label className="block text-gray-700 mb-2" htmlFor="fullName">
                 姓名
@@ -256,7 +268,6 @@ const Profile = () => {
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                   placeholder="您的姓名"
-                  required
                 />
               </div>
             </div>
@@ -274,32 +285,11 @@ const Profile = () => {
                   id="email"
                   name="email"
                   value={user.email}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="您的電子郵件"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-gray-700 mb-2" htmlFor="username">
-                用戶名
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FontAwesomeIcon icon={faUser} className="text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  value={user.username}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 bg-gray-50 rounded-md shadow-sm cursor-not-allowed"
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 cursor-not-allowed"
                   disabled
                 />
               </div>
-              <p className="text-sm text-gray-500 mt-1">用戶名無法修改</p>
+              <p className="text-sm text-gray-500 mt-1">電子郵件無法修改</p>
             </div>
           </div>
           
@@ -465,6 +455,26 @@ const Profile = () => {
           <p className="text-gray-500">如需更改密碼，請點擊「更改密碼」按鈕。</p>
         )}
       </div>
+
+      {/* 密碼更新成功對話框 */}
+      {showSuccessDialog && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md mx-auto p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">密碼更新成功</h3>
+            <p className="text-gray-600 mb-4">
+              您的密碼已經成功更新。請在下次登入時使用新密碼。
+            </p>
+            <div className="flex justify-end">
+              <Button
+                variant="primary"
+                onClick={() => setShowSuccessDialog(false)}
+              >
+                確認
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

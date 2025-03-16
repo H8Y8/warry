@@ -6,13 +6,15 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const cookieParser = require('cookie-parser');
+const { errorHandler } = require('./middleware/error');
 
 // 創建Express應用
 const app = express();
 
 // 配置CORS
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -24,8 +26,11 @@ app.use(express.json());
 // 解析URL編碼的請求體
 app.use(express.urlencoded({ extended: true }));
 
+// 解析Cookie
+app.use(cookieParser());
+
 // 靜態文件服務
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // API路由
 app.use('/api/auth', require('./routes/auth'));
@@ -51,17 +56,6 @@ app.use((req, res, next) => {
 });
 
 // 錯誤處理中間件
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  
-  const statusCode = err.statusCode || 500;
-  const message = err.message || '服務器內部錯誤';
-  
-  res.status(statusCode).json({
-    success: false,
-    error: message,
-    stack: process.env.NODE_ENV === 'production' ? undefined : err.stack
-  });
-});
+app.use(errorHandler);
 
 module.exports = app; 

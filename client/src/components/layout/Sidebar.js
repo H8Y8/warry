@@ -10,18 +10,18 @@ const Sidebar = ({ isOpen, onClose, menuItems, onLogout }) => {
     <>
       {/* 桌面側邊欄 */}
       <div className="hidden md:flex md:flex-shrink-0">
-        <div className="flex flex-col w-64 bg-white border-r border-gray-200">
+        <div className="flex flex-col w-full sm:w-56 md:w-64 bg-white border-r border-gray-200">
           <div className="flex flex-col h-0 flex-1">
             <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-              <div className="flex items-center justify-center flex-shrink-0 px-4 mb-5">
-                <h1 className="text-xl font-bold text-primary-600">電子產品保固記錄</h1>
+              <div className="flex items-center justify-center flex-shrink-0 px-2 mb-5">
+                <h1 className="text-base sm:text-lg md:text-xl font-bold text-primary-600 text-center">電子產品保固記錄</h1>
               </div>
-              <nav className="mt-5 flex-1 px-2 space-y-1">
+              <nav className="mt-3 flex-1 px-1 sm:px-2 space-y-0.5 sm:space-y-1">
                 {menuItems.map((item) => (
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`group flex items-center px-4 py-2 text-sm font-medium rounded-md ${
+                    className={`group flex items-center px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md ${
                       location.pathname === item.path
                         ? 'bg-primary-50 text-primary-600'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -29,25 +29,25 @@ const Sidebar = ({ isOpen, onClose, menuItems, onLogout }) => {
                   >
                     <FontAwesomeIcon
                       icon={item.icon}
-                      className={`mr-3 flex-shrink-0 h-5 w-5 ${
+                      className={`mr-2 flex-shrink-0 h-4 w-4 sm:h-5 sm:w-5 ${
                         location.pathname === item.path
                           ? 'text-primary-500'
                           : 'text-gray-400 group-hover:text-gray-500'
                       }`}
                     />
-                    {item.label}
+                    <span className="truncate">{item.label}</span>
                   </Link>
                 ))}
               </nav>
             </div>
-            <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+            <div className="flex-shrink-0 flex border-t border-gray-200 p-2 sm:p-4">
               <button
                 onClick={onLogout}
-                className="flex-shrink-0 w-full group flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+                className="flex-shrink-0 w-full group flex items-center px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
               >
                 <FontAwesomeIcon
                   icon={faSignOutAlt}
-                  className="mr-3 flex-shrink-0 h-5 w-5 text-gray-400 group-hover:text-gray-500"
+                  className="mr-2 flex-shrink-0 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 group-hover:text-gray-500"
                 />
                 登出
               </button>
