@@ -1,18 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faBars, faBell, faUser, faSignOutAlt, 
-  faCog, faQuestionCircle, faTimes 
+  faCog, faQuestionCircle
 } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../../contexts/AuthContext';
+import { getNotificationCounts, markNotificationAsRead, subscribeToNotifications } from '../../services/notificationService';
+import { format, isValid, parseISO } from 'date-fns';
+import { zhTW } from 'date-fns/locale';
 
 const Navbar = ({ onToggleSidebar, user, onLogout }) => {
+  const navigate = useNavigate();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const profileDropdownRef = useRef(null);
   const notificationsRef = useRef(null);
-  const { logout, isAuthenticated } = useAuth();
+  const { logout } = useAuth();
+  const [notificationData, setNotificationData] = useState({
+    total: 0,
+    alerts: []
+  });
 
   const toggleProfileDropdown = () => {
     setProfileDropdownOpen(!profileDropdownOpen);
@@ -48,6 +56,30 @@ const Navbar = ({ onToggleSidebar, user, onLogout }) => {
     };
   }, []);
 
+  useEffect(() => {
+    const loadNotifications = async () => {
+      const data = await getNotificationCounts();
+      setNotificationData(data);
+    };
+
+    loadNotifications();
+    const unsubscribe = subscribeToNotifications(setNotificationData);
+    return () => unsubscribe();
+  }, []);
+
+  const handleNotificationClick = async (productId) => {
+    await markNotificationAsRead(productId);
+    setNotificationData(prev => ({
+      ...prev,
+      alerts: prev.alerts.map(alert => 
+        alert.productId === productId ? { ...alert, read: true } : alert
+      ),
+      total: prev.total - 1
+    }));
+    setNotificationsOpen(false);
+    navigate(`/products/${productId}`);
+  };
+
   const handleLogout = async () => {
     await logout();
   };
@@ -65,13 +97,6 @@ const Navbar = ({ onToggleSidebar, user, onLogout }) => {
       <FontAwesomeIcon icon={faUser} className="h-4 w-4 text-gray-500" />
     );
   };
-
-  // 模擬通知數據
-  const notifications = [
-    { id: 1, text: 'iPhone 13的保固即將到期', time: '2小時前', read: false },
-    { id: 2, text: '您的MacBook Pro保固將在7天後到期', time: '1天前', read: true },
-    { id: 3, text: '新增了智慧型手錶的保固記錄', time: '3天前', read: true },
-  ];
 
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -103,56 +128,56 @@ const Navbar = ({ onToggleSidebar, user, onLogout }) => {
             <div className="relative ml-3" ref={notificationsRef}>
               <button
                 onClick={toggleNotifications}
-                className="flex items-center text-gray-600 hover:text-gray-900 focus:outline-none p-2 rounded-full hover:bg-gray-100"
+                className="relative p-2 text-gray-600 hover:text-primary-600 transition-colors duration-200"
               >
-                <span className="relative">
-                  <FontAwesomeIcon icon={faBell} className="h-5 w-5" />
-                  {notifications.some(n => !n.read) && (
-                    <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500"></span>
-                  )}
-                </span>
+                <FontAwesomeIcon icon={faBell} className="text-xl" />
+                {notificationData.total > 0 && (
+                  <span className="absolute top-0 right-0 -mt-1 -mr-1 px-2 py-0.5 text-xs font-medium bg-red-500 text-white rounded-full">
+                    {notificationData.total}
+                  </span>
+                )}
               </button>
 
               {/* 通知下拉菜單 */}
               {notificationsOpen && (
-                <div className="origin-top-right absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                <div className="origin-top-right absolute right-0 mt-2 w-96 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
                   <div className="py-1">
                     <div className="px-4 py-2 border-b border-gray-200">
-                      <h3 className="text-sm font-medium text-gray-900">通知</h3>
+                      <h3 className="text-sm font-medium text-gray-900">產品保固提醒</h3>
                     </div>
-                    <div className="max-h-72 overflow-y-auto">
-                      {notifications.length === 0 ? (
-                        <p className="px-4 py-2 text-sm text-gray-500">沒有新通知</p>
-                      ) : (
-                        notifications.map((notification) => (
-                          <Link
-                            key={notification.id}
-                            to="/warranty-alerts"
-                            className={`block px-4 py-3 hover:bg-gray-50 transition ${
-                              notification.read ? 'bg-white' : 'bg-blue-50'
-                            }`}
-                          >
-                            <div className="flex items-start">
-                              <div className="flex-1 min-w-0">
-                                <p className={`text-sm ${notification.read ? 'text-gray-600' : 'text-gray-900 font-medium'}`}>
-                                  {notification.text}
-                                </p>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  {notification.time}
-                                </p>
+                    <div className="max-h-96 overflow-y-auto">
+                      {notificationData.alerts
+                        .filter(alert => !alert.read && alert.daysLeft > 0 && alert.daysLeft <= 30)
+                        .map((alert) => {
+                          const endDate = new Date(alert.warrantyEndDate);
+                          const formattedDate = !isNaN(endDate.getTime())
+                            ? format(endDate, 'yyyy年MM月dd日', { locale: zhTW })
+                            : '日期無效';
+
+                          return (
+                            <button
+                              key={alert.id}
+                              onClick={() => handleNotificationClick(alert.productId)}
+                              className="w-full text-left px-4 py-3 hover:bg-gray-50 transition border-b border-gray-100 last:border-b-0"
+                            >
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium text-gray-900">
+                                  {alert.productName}
+                                </span>
+                                <span className="text-sm text-yellow-600 mt-1 flex items-center">
+                                  <FontAwesomeIcon icon={faBell} className="mr-1" />
+                                  將在 {alert.daysLeft} 天後到期
+                                </span>
+                                <span className="text-xs text-gray-500 mt-1">
+                                  到期日期：{formattedDate}
+                                </span>
                               </div>
-                            </div>
-                          </Link>
-                        ))
+                            </button>
+                          );
+                        })}
+                      {notificationData.alerts.filter(alert => !alert.read && alert.daysLeft > 0 && alert.daysLeft <= 30).length === 0 && (
+                        <p className="px-4 py-3 text-sm text-gray-500">沒有新通知</p>
                       )}
-                    </div>
-                    <div className="border-t border-gray-200">
-                      <Link
-                        to="/warranty-alerts"
-                        className="block px-4 py-2 text-sm text-primary-600 text-center font-medium"
-                      >
-                        查看所有通知
-                      </Link>
                     </div>
                   </div>
                 </div>

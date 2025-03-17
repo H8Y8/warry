@@ -507,4 +507,55 @@ exports.getProductStats = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+/**
+ * 獲取保固提醒
+ * @route GET /api/products/warranty-alerts
+ * @access Private
+ */
+exports.getWarrantyAlerts = async (req, res, next) => {
+  try {
+    // 獲取當前用戶的所有產品
+    const products = await Product.find({ userId: req.user.id });
+    
+    // 計算每個產品的保固狀態
+    const today = new Date();
+    const alerts = products.map(product => {
+      const endDate = new Date(product.warrantyEndDate);
+      const diffTime = endDate - today;
+      const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      // 確定狀態
+      let status;
+      if (daysLeft <= 0) {
+        status = 'expired';
+      } else if (daysLeft <= 30) {
+        status = 'expiring';
+      } else {
+        status = 'active';
+      }
+
+      // 構建提醒對象
+      return {
+        id: product._id,
+        productId: product._id,
+        productName: product.name,
+        brand: product.brand,
+        type: product.type,
+        image: product.images && product.images.length > 0 ? product.images[0] : null,
+        purchaseDate: product.purchaseDate,
+        warrantyEndDate: product.warrantyEndDate,
+        daysLeft: daysLeft,
+        status: status
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      data: alerts
+    });
+  } catch (error) {
+    next(error);
+  }
 }; 

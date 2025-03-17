@@ -38,54 +38,22 @@ const WarrantyAlerts = () => {
     const fetchAlerts = async () => {
       setLoading(true);
       try {
-        // 在實際應用中，這裡會調用API
-        // const response = await api.get('/warranty-alerts');
+        const response = await api.get('/api/products/warranty-alerts');
         
-        // 模擬API請求
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // 模擬提醒數據
-        const mockAlerts = [
-          {
-            id: 1,
-            productId: 1,
-            productName: 'iPhone 13 Pro',
-            brand: 'Apple',
-            type: '智慧型手機',
-            purchaseDate: '2021-09-30',
-            warrantyEndDate: '2023-09-30',
-            daysLeft: 15,
-            image: 'https://images.unsplash.com/photo-1611472173362-3f53dbd65d80?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8aXBob25lJTIwMTN8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60'
-          },
-          {
-            id: 2,
-            productId: 2,
-            productName: 'MacBook Pro 14"',
-            brand: 'Apple',
-            type: '筆記型電腦',
-            purchaseDate: '2021-11-20',
-            warrantyEndDate: '2023-11-20',
-            daysLeft: 45,
-            image: 'https://images.unsplash.com/photo-1639249227523-86c063f75d20?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTh8fG1hY2Jvb2slMjBwcm98ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60'
-          },
-          {
-            id: 3,
-            productId: 3,
-            productName: 'Galaxy Watch 4',
-            brand: 'Samsung',
-            type: '智慧型手錶',
-            purchaseDate: '2022-02-15',
-            warrantyEndDate: '2023-07-15',
-            daysLeft: -15,
-            image: 'https://images.unsplash.com/photo-1617043786394-f977fa12eddf?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTd8fGdhbGF4eSUyMHdhdGNofGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=500&q=60'
-          }
-        ];
-
-        setAlerts(mockAlerts);
-        setLoading(false);
+        if (response.data.success) {
+          setAlerts(response.data.data.map(alert => ({
+            ...alert,
+            image: alert.image ? `${process.env.REACT_APP_API_URL}/${alert.image.replace(/^\//, '')}` : null
+          })));
+        } else {
+          setError('獲取保固提醒失敗');
+          setAlerts([]);
+        }
       } catch (error) {
-        console.error('獲取保固提醒錯誤:', error);
-        setError('獲取保固提醒時發生錯誤，請稍後再試');
+        console.error('獲取保固提醒失敗:', error);
+        setError(error.response?.data?.message || '獲取保固提醒時發生錯誤');
+        setAlerts([]);
+      } finally {
         setLoading(false);
       }
     };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faBell, 
@@ -11,7 +11,9 @@ import {
   faSync,
   faToggleOn,
   faToggleOff,
-  faSave
+  faSave,
+  faFilter,
+  faSearch
 } from '@fortawesome/free-solid-svg-icons';
 import api from '../../services/api';
 
@@ -32,37 +34,55 @@ const WarrantyAlerts = () => {
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [settingsMessage, setSettingsMessage] = useState({ type: '', text: '' });
 
-  useEffect(() => {
-    fetchAlerts();
-    fetchNotificationSettings();
-  }, []);
+  // 格式化日期 (只顯示 yyyy/mm/dd)
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}/${month}/${day}`;
+  };
 
-  const fetchAlerts = async () => {
+  const fetchAlerts = useCallback(async () => {
     setLoading(true);
     
     try {
-      const response = await api.get('/api/warranties/alerts');
+      const response = await api.get('/api/products/warranty-alerts');
       if (response.data.success) {
-        setAlerts(response.data.data);
+        const processedAlerts = response.data.data.map(alert => ({
+          ...alert,
+          image: alert.image ? 
+            (alert.image.startsWith('http') ? 
+              alert.image : 
+              `${process.env.REACT_APP_API_URL}/uploads/products/${alert.image.split('/').pop()}`) : 
+            null,
+          warrantyEndDate: formatDate(alert.warrantyEndDate),
+          daysRemaining: alert.daysLeft
+        }));
+        setAlerts(processedAlerts);
       } else {
         console.error('獲取保固提醒失敗:', response.data.message);
-        // 如果請求成功但處理失敗，顯示空數據
         setAlerts([]);
       }
     } catch (error) {
       console.error('獲取保固提醒失敗:', error);
-      // 如果請求失敗，顯示空數據
       setAlerts([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchAlerts();
+    fetchNotificationSettings();
+  }, [fetchAlerts]);
 
   const fetchNotificationSettings = async () => {
     try {
       const response = await api.get('/api/users/notification-settings');
       if (response.data.success) {
         setNotificationSettings(response.data.data);
+        setShowSettings(response.data.data.enabled);
       } else {
         console.error('獲取通知設定失敗:', response.data.message);
       }
@@ -71,13 +91,56 @@ const WarrantyAlerts = () => {
     }
   };
 
-  const handleNotificationSettingsChange = (e) => {
+  const handleNotificationSettingsChange = async (e) => {
     const { name, value, type, checked } = e.target;
     
-    setNotificationSettings(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    if (name === 'enabled') {
+      // 立即更新 UI 狀態
+      setNotificationSettings(prev => ({
+        ...prev,
+        enabled: checked
+      }));
+      
+      // 儲存設定到後端
+      try {
+        const response = await api.put('/api/users/notification-settings', {
+          ...notificationSettings,
+          enabled: checked
+        });
+        
+        if (response.data.success) {
+          setSettingsMessage({
+            type: 'success',
+            text: checked ? '已啟用電子郵件通知' : '已停用電子郵件通知'
+          });
+        } else {
+          // 如果儲存失敗，恢復原狀態
+          setNotificationSettings(prev => ({
+            ...prev,
+            enabled: !checked
+          }));
+          setSettingsMessage({
+            type: 'error',
+            text: response.data.message || '更新通知設定失敗'
+          });
+        }
+      } catch (error) {
+        // 如果發生錯誤，恢復原狀態
+        setNotificationSettings(prev => ({
+          ...prev,
+          enabled: !checked
+        }));
+        setSettingsMessage({
+          type: 'error',
+          text: error.response?.data?.message || '更新通知設定失敗'
+        });
+      }
+    } else {
+      setNotificationSettings(prev => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      }));
+    }
     
     // 如果選擇使用帳戶郵箱，則重置自定義郵箱
     if (name === 'useAccountEmail' && checked) {
@@ -119,11 +182,21 @@ const WarrantyAlerts = () => {
 
   const filteredAlerts = () => {
     if (filter === 'all') return alerts;
-    return alerts.filter(alert => alert.status === filter);
+    
+    return alerts.filter(alert => {
+      if (filter === 'expired') {
+        return alert.daysRemaining <= 0;
+      } else if (filter === 'upcoming') {
+        return alert.daysRemaining > 0 && alert.daysRemaining <= 30;
+      } else if (filter === 'active') {
+        return alert.daysRemaining > 30;
+      }
+      return true;
+    });
   };
 
   const getStatusBadge = (status, daysRemaining) => {
-    if (status === 'expired') {
+    if (daysRemaining <= 0) {
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800 flex items-center">
           <FontAwesomeIcon icon={faExclamationTriangle} className="mr-1" />
@@ -148,286 +221,315 @@ const WarrantyAlerts = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">保固提醒</h1>
-        <button
-          onClick={() => setShowSettings(!showSettings)}
-          className="flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
-        >
-          <FontAwesomeIcon icon={faCog} className="mr-2" />
-          {showSettings ? '隱藏設定' : '通知設定'}
-        </button>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* 頁面標題區域 */}
+      <div className="mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-4 sm:mb-0">
+            <h1 className="text-3xl font-bold text-gray-900">保固提醒</h1>
+            <p className="mt-2 text-sm text-gray-600">管理您的產品保固狀態，及時獲取到期提醒</p>
+          </div>
+        </div>
       </div>
-      
-      {/* 郵件通知設定部分 */}
-      {showSettings && (
-        <div className="bg-white shadow-md rounded-lg p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-6 border-b pb-3">電子郵件通知設定</h2>
-          
-          {settingsMessage.text && (
-            <div className={`p-4 mb-6 rounded flex items-center ${settingsMessage.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-              <FontAwesomeIcon 
-                icon={settingsMessage.type === 'success' ? faSave : faExclamationTriangle} 
-                className="mr-2" 
-              />
-              <span>{settingsMessage.text}</span>
+
+      {/* 通知設定面板 */}
+      <div className="bg-white rounded-lg shadow-sm mb-6 overflow-hidden transition-all duration-300">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6 pb-3 border-b">
+            <h2 className="text-xl font-semibold text-gray-900">電子郵件通知設定</h2>
+            <div className="flex items-center space-x-3">
+              <span className="text-sm text-gray-600">{notificationSettings.enabled ? '已啟用通知' : '未啟用通知'}</span>
+              <label className="relative inline-block w-12 h-6 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="enabled"
+                  checked={notificationSettings.enabled}
+                  onChange={handleNotificationSettingsChange}
+                  className="sr-only peer"
+                />
+                <div className="w-full h-full bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+              </label>
             </div>
-          )}
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-            <div className="space-y-6">
-              {/* 啟用電子郵件通知 */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="flex items-center text-gray-700 font-medium">
-                    <FontAwesomeIcon icon={notificationSettings.enabled ? faToggleOn : faToggleOff} 
-                      className={`mr-3 text-xl ${notificationSettings.enabled ? 'text-green-500' : 'text-gray-400'}`} 
-                    />
-                    啟用電子郵件通知
-                  </label>
-                  <div className="relative inline-block w-12 align-middle select-none">
-                    <input
-                      type="checkbox"
-                      name="enabled"
-                      id="enabled"
-                      checked={notificationSettings.enabled}
-                      onChange={handleNotificationSettingsChange}
-                      className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
-                    />
-                    <label
-                      htmlFor="enabled"
-                      className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer ${
-                        notificationSettings.enabled ? 'bg-blue-500' : 'bg-gray-300'
-                      }`}
-                    ></label>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-500 ml-7">啟用後，系統將根據您的設定發送保固相關提醒</p>
-              </div>
-              
-              {/* 通知郵箱 */}
-              <div className={`p-4 rounded-lg ${notificationSettings.enabled ? 'bg-white border border-gray-200' : 'bg-gray-100 opacity-60'}`}>
-                <label className="flex items-center text-gray-700 font-medium mb-3">
-                  <FontAwesomeIcon icon={faEnvelope} className="mr-3 text-blue-500" />
-                  通知郵箱
-                </label>
-                <div className="mb-3 ml-7">
-                  <label className="inline-flex items-center">
-                    <input
-                      type="checkbox"
-                      name="useAccountEmail"
-                      checked={notificationSettings.useAccountEmail}
-                      onChange={handleNotificationSettingsChange}
-                      className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                      disabled={!notificationSettings.enabled}
-                    />
-                    <span className="ml-2">使用帳戶郵箱接收通知</span>
-                  </label>
-                </div>
-                {!notificationSettings.useAccountEmail && (
-                  <div className="ml-7">
-                    <input
-                      type="email"
-                      name="notificationEmail"
-                      value={notificationSettings.notificationEmail}
-                      onChange={handleNotificationSettingsChange}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="自定義通知郵箱"
-                      disabled={!notificationSettings.enabled}
-                    />
-                  </div>
-                )}
-              </div>
-              
-              {/* 提前通知時間 */}
-              <div className={`p-4 rounded-lg ${notificationSettings.enabled ? 'bg-white border border-gray-200' : 'bg-gray-100 opacity-60'}`}>
-                <label className="flex items-center text-gray-700 font-medium mb-3">
-                  <FontAwesomeIcon icon={faClock} className="mr-3 text-orange-500" />
-                  提前通知時間
-                </label>
-                <div className="ml-7">
-                  <select
-                    name="notifyBefore"
-                    value={notificationSettings.notifyBefore}
-                    onChange={handleNotificationSettingsChange}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    disabled={!notificationSettings.enabled}
-                  >
-                    <option value="7">7 天前</option>
-                    <option value="14">14 天前</option>
-                    <option value="30">30 天前</option>
-                    <option value="60">60 天前</option>
-                    <option value="90">90 天前</option>
-                  </select>
-                  <p className="text-sm text-gray-500 mt-2">系統將在保固到期前設定的天數發送提醒</p>
-                </div>
-              </div>
-            </div>
+          </div>
             
-            <div className="space-y-6">
-              {/* 通知頻率 */}
-              <div className={`p-4 rounded-lg ${notificationSettings.enabled ? 'bg-white border border-gray-200' : 'bg-gray-100 opacity-60'}`}>
-                <label className="flex items-center text-gray-700 font-medium mb-3">
-                  <FontAwesomeIcon icon={faSync} className="mr-3 text-purple-500" />
-                  通知頻率
-                </label>
-                <div className="ml-7">
-                  <select
-                    name="frequency"
-                    value={notificationSettings.frequency}
-                    onChange={handleNotificationSettingsChange}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    disabled={!notificationSettings.enabled}
-                  >
-                    <option value="once">僅通知一次</option>
-                    <option value="daily">每天通知</option>
-                    <option value="weekly">每週通知</option>
-                  </select>
-                  <p className="text-sm text-gray-500 mt-2">選擇「僅通知一次」將只在設定的提前時間通知一次</p>
+          {notificationSettings.enabled && (
+            <>
+              {settingsMessage.text && (
+                <div className={`p-3 mb-6 rounded-md flex items-center text-sm ${
+                  settingsMessage.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'
+                }`}>
+                  <FontAwesomeIcon 
+                    icon={settingsMessage.type === 'success' ? faCheckCircle : faExclamationTriangle} 
+                    className="mr-2" 
+                  />
+                  <span>{settingsMessage.text}</span>
                 </div>
-              </div>
+              )}
               
-              {/* 額外通知選項 */}
-              <div className={`p-4 rounded-lg ${notificationSettings.enabled ? 'bg-white border border-gray-200' : 'bg-gray-100 opacity-60'}`}>
-                <label className="flex items-center text-gray-700 font-medium mb-3">
-                  <FontAwesomeIcon icon={faBell} className="mr-3 text-yellow-500" />
-                  額外通知選項
-                </label>
-                <div className="ml-7 space-y-3">
-                  <label className="flex items-start">
-                    <input
-                      type="checkbox"
-                      name="notifyOnExpiry"
-                      checked={notificationSettings.notifyOnExpiry}
-                      onChange={handleNotificationSettingsChange}
-                      className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 mt-1"
-                      disabled={!notificationSettings.enabled}
-                    />
-                    <span className="ml-2">
-                      <span className="block font-medium">保固到期當天通知</span>
-                      <span className="block text-sm text-gray-500">在保固到期當天發送提醒</span>
-                    </span>
-                  </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-6">
+                  {/* 通知郵箱 */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="mb-4">
+                      <label className="flex items-center text-gray-700 font-medium">
+                        <FontAwesomeIcon icon={faEnvelope} className="mr-3 text-blue-500" />
+                        通知郵箱
+                      </label>
+                      <div className="mt-3 space-y-4">
+                        <label className="inline-flex items-center">
+                          <input
+                            type="checkbox"
+                            name="useAccountEmail"
+                            checked={notificationSettings.useAccountEmail}
+                            onChange={handleNotificationSettingsChange}
+                            className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                          />
+                          <span className="ml-2">使用帳戶郵箱接收通知</span>
+                        </label>
+                        {!notificationSettings.useAccountEmail && (
+                          <input
+                            type="email"
+                            name="notificationEmail"
+                            value={notificationSettings.notificationEmail}
+                            onChange={handleNotificationSettingsChange}
+                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="自定義通知郵箱"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
                   
-                  <label className="flex items-start">
-                    <input
-                      type="checkbox"
-                      name="notifyAfterExpiry"
-                      checked={notificationSettings.notifyAfterExpiry}
-                      onChange={handleNotificationSettingsChange}
-                      className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 mt-1"
-                      disabled={!notificationSettings.enabled}
-                    />
-                    <span className="ml-2">
-                      <span className="block font-medium">保固過期後通知</span>
-                      <span className="block text-sm text-gray-500">在保固已過期時仍然發送提醒</span>
-                    </span>
-                  </label>
+                  {/* 提前通知時間 */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <label className="flex items-center text-gray-700 font-medium mb-3">
+                      <FontAwesomeIcon icon={faClock} className="mr-3 text-orange-500" />
+                      提前通知時間
+                    </label>
+                    <div className="space-y-2">
+                      <select
+                        name="notifyBefore"
+                        value={notificationSettings.notifyBefore}
+                        onChange={handleNotificationSettingsChange}
+                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="7">7 天前</option>
+                        <option value="14">14 天前</option>
+                        <option value="30">30 天前</option>
+                        <option value="60">60 天前</option>
+                        <option value="90">90 天前</option>
+                      </select>
+                      <p className="text-sm text-gray-500">系統將在保固到期前設定的天數發送提醒</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-6">
+                  {/* 通知頻率 */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <label className="flex items-center text-gray-700 font-medium mb-3">
+                      <FontAwesomeIcon icon={faSync} className="mr-3 text-purple-500" />
+                      通知頻率
+                    </label>
+                    <div className="space-y-2">
+                      <select
+                        name="frequency"
+                        value={notificationSettings.frequency}
+                        onChange={handleNotificationSettingsChange}
+                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="once">僅通知一次</option>
+                        <option value="daily">每天通知</option>
+                        <option value="weekly">每週通知</option>
+                      </select>
+                      <p className="text-sm text-gray-500">選擇「僅通知一次」將只在設定的提前時間通知一次</p>
+                    </div>
+                  </div>
+                  
+                  {/* 額外通知選項 */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <label className="flex items-center text-gray-700 font-medium mb-3">
+                      <FontAwesomeIcon icon={faBell} className="mr-3 text-yellow-500" />
+                      額外通知選項
+                    </label>
+                    <div className="space-y-4">
+                      <label className="flex items-start">
+                        <input
+                          type="checkbox"
+                          name="notifyOnExpiry"
+                          checked={notificationSettings.notifyOnExpiry}
+                          onChange={handleNotificationSettingsChange}
+                          className="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                        />
+                        <span className="ml-2">
+                          <span className="block font-medium">保固到期當天通知</span>
+                          <span className="block text-sm text-gray-500">在保固到期當天發送提醒</span>
+                        </span>
+                      </label>
+                      
+                      <label className="flex items-start">
+                        <input
+                          type="checkbox"
+                          name="notifyAfterExpiry"
+                          checked={notificationSettings.notifyAfterExpiry}
+                          onChange={handleNotificationSettingsChange}
+                          className="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                        />
+                        <span className="ml-2">
+                          <span className="block font-medium">保固過期後通知</span>
+                          <span className="block text-sm text-gray-500">在保固已過期時仍然發送提醒</span>
+                        </span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
-              
+
               {/* 保存按鈕 */}
-              <div className="flex justify-end mt-8">
+              <div className="flex justify-end mt-6 pt-6 border-t border-gray-200">
                 <button
                   onClick={saveNotificationSettings}
-                  className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={settingsLoading}
                 >
                   {settingsLoading ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
                   ) : (
                     <FontAwesomeIcon icon={faSave} className="mr-2" />
                   )}
                   {settingsLoading ? '儲存中...' : '儲存設定'}
                 </button>
               </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
-      )}
-      
-      <div className="bg-white shadow-md rounded-lg p-6 mb-8">
-        <div className="flex flex-wrap items-center justify-between mb-6">
-          <div className="flex flex-wrap items-center space-x-2 mb-4 md:mb-0">
+      </div>
+
+      {/* 過濾器區域 */}
+      <div className="bg-white rounded-lg shadow-sm mb-6 p-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-md ${filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                filter === 'all' 
+                ? 'bg-primary-100 text-primary-800 ring-2 ring-primary-600 ring-offset-2' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
             >
               全部
             </button>
             <button
               onClick={() => setFilter('upcoming')}
-              className={`px-4 py-2 rounded-md ${filter === 'upcoming' ? 'bg-yellow-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                filter === 'upcoming'
+                ? 'bg-yellow-100 text-yellow-800 ring-2 ring-yellow-600 ring-offset-2'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
             >
+              <FontAwesomeIcon icon={faBell} className="mr-2" />
               即將到期
             </button>
             <button
               onClick={() => setFilter('expired')}
-              className={`px-4 py-2 rounded-md ${filter === 'expired' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                filter === 'expired'
+                ? 'bg-red-100 text-red-800 ring-2 ring-red-600 ring-offset-2'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
             >
+              <FontAwesomeIcon icon={faExclamationTriangle} className="mr-2" />
               已過期
             </button>
             <button
               onClick={() => setFilter('active')}
-              className={`px-4 py-2 rounded-md ${filter === 'active' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                filter === 'active'
+                ? 'bg-green-100 text-green-800 ring-2 ring-green-600 ring-offset-2'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
             >
+              <FontAwesomeIcon icon={faCheckCircle} className="mr-2" />
               有效
             </button>
           </div>
-          
           <button
             onClick={fetchAlerts}
-            className="flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
+            className="inline-flex items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200"
           >
-            <FontAwesomeIcon icon={faSync} className="mr-2" />
-            刷新
+            <FontAwesomeIcon icon={faSync} className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
+            {loading ? '更新中...' : '刷新'}
           </button>
         </div>
-        
+      </div>
+
+      {/* 提醒列表 */}
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         {loading ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-200 border-t-primary-600"></div>
           </div>
         ) : filteredAlerts().length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            沒有找到符合條件的保固提醒
+          <div className="text-center py-12">
+            <div className="rounded-full bg-gray-100 p-3 w-12 h-12 flex items-center justify-center mx-auto mb-4">
+              <FontAwesomeIcon icon={faBell} className="text-gray-400 text-xl" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">沒有保固提醒</h3>
+            <p className="text-gray-500 max-w-sm mx-auto">
+              {filter === 'all' 
+                ? '目前沒有任何產品的保固提醒' 
+                : '沒有找到符合當前篩選條件的保固提醒'}
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">產品</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">保固期限</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">狀態</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    產品資訊
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    保固期限
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    狀態
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredAlerts().map(alert => (
-                  <tr key={alert.id} className={`hover:bg-gray-50 ${!alert.isRead ? 'bg-blue-50' : ''}`}>
+                  <tr 
+                    key={alert.id} 
+                    className="hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10">
+                        <div className="flex-shrink-0 h-12 w-12 rounded-lg overflow-hidden border border-gray-200">
                           <img 
-                            className="h-10 w-10 rounded-full" 
-                            src={alert.image || `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.svg`} 
+                            className="h-full w-full object-cover" 
+                            src={alert.image || `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.jpg`}
                             alt={alert.productName}
                             onError={(e) => {
                               e.target.onerror = null;
-                              e.target.src = `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.svg`;
+                              e.target.src = `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.jpg`;
                             }}
                           />
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{alert.productName}</div>
+                          <div className="text-sm font-medium text-gray-900 mb-1">{alert.productName}</div>
+                          <div className="text-sm text-gray-500 flex items-center">
+                            <span className="inline-block">{alert.brand}</span>
+                            <span className="mx-2 text-gray-300">·</span>
+                            <span className="inline-block">{alert.type}</span>
+                          </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
+                      <div className="flex items-center text-sm text-gray-900">
                         <FontAwesomeIcon icon={faCalendarAlt} className="text-gray-400 mr-2" />
-                        <span className="text-sm text-gray-900">{alert.warrantyEndDate}</span>
+                        {alert.warrantyEndDate}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -440,26 +542,6 @@ const WarrantyAlerts = () => {
           </div>
         )}
       </div>
-      
-      <style jsx="true">{`
-        .toggle-checkbox:checked {
-          right: 0;
-          border-color: #2563eb;
-        }
-        .toggle-checkbox:checked + .toggle-label {
-          background-color: #2563eb;
-        }
-        .toggle-checkbox {
-          right: 0;
-          z-index: 1;
-          border-color: #d1d5db;
-          transition: all 0.3s;
-        }
-        .toggle-label {
-          transition: all 0.3s;
-          height: 1.5rem;
-        }
-      `}</style>
     </div>
   );
 };

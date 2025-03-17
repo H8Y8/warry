@@ -15,7 +15,8 @@ const {
   deleteProductImage,
   uploadProductFile,
   deleteProductFile,
-  getProductStats
+  getProductStats,
+  getWarrantyAlerts
 } = require('../controllers/productController');
 const { protect } = require('../middleware/auth');
 const {
@@ -29,6 +30,9 @@ const {
 
 // 所有路由都需要認證
 router.use(protect);
+
+// 獲取保固提醒
+router.get('/warranty-alerts', getWarrantyAlerts);
 
 // 獲取產品統計數據
 router.get('/stats', getProductStats);
