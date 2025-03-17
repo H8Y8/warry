@@ -207,19 +207,13 @@ const Navbar = ({ onToggleSidebar, user, onLogout }) => {
                       to="/profile"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
-                      <FontAwesomeIcon icon={faUser} className="mr-2" />
-                      個人資料
-                    </Link>
-                    <Link
-                      to="/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
                       <FontAwesomeIcon icon={faCog} className="mr-2" />
                       設置
                     </Link>
                     <Link
                       to="/help"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setProfileDropdownOpen(false)}
                     >
                       <FontAwesomeIcon icon={faQuestionCircle} className="mr-2" />
                       幫助

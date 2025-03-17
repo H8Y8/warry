@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <style>
+    .primary { fill: #4F46E5; }
+    .secondary { fill: #818CF8; }
+    .accent { fill: #C7D2FE; }
+  </style>
+  <g>
+    <rect x="50" y="100" width="400" height="300" rx="20" class="accent" />
+    <rect x="80" y="140" width="340" height="60" rx="8" class="secondary" opacity="0.8" />
+    <rect x="80" y="220" width="340" height="60" rx="8" class="secondary" opacity="0.8" />
+    <rect x="80" y="300" width="340" height="60" rx="8" class="secondary" opacity="0.8" />
+    <circle cx="120" cy="170" r="20" class="primary" />
+    <circle cx="120" cy="250" r="20" class="primary" />
+    <circle cx="120" cy="330" r="20" class="primary" />
+    <rect x="160" y="160" width="200" height="20" rx="4" fill="white" />
+    <rect x="160" y="240" width="200" height="20" rx="4" fill="white" />
+    <rect x="160" y="320" width="200" height="20" rx="4" fill="white" />
+  </g>
+</svg> 

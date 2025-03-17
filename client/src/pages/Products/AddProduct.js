@@ -314,532 +314,637 @@ const AddProduct = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto">
-      {/* 標題導航 */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between">
-        <div className="flex items-center">
-          <Button
-            to="/products"
-            variant="light"
-            className="mr-4"
-            icon={faArrowLeft}
-          >
-            返回
-          </Button>
-          <h1 className="text-2xl font-bold text-gray-900">添加新產品</h1>
-        </div>
-        <div className="mt-4 sm:mt-0 text-sm text-gray-500">
-          <span>添加產品及保固信息，以便追踪保固期限</span>
-        </div>
-      </div>
-
-      {error && (
-        <Alert
-          variant="error"
-          className="mb-6"
-          icon={faExclamationTriangle}
-        >
-          {error}
-        </Alert>
-      )}
-
-      {/* 步驟指示器 */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div className={`flex-1 flex items-center ${currentStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full ${currentStep >= 1 ? 'bg-blue-100' : 'bg-gray-100'}`}>
-              <span className="text-sm font-medium">1</span>
-            </div>
-            <span className="ml-2 text-sm font-medium">基本信息</span>
-          </div>
-          <div className={`w-12 h-1 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
-          <div className={`flex-1 flex items-center ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full ${currentStep >= 2 ? 'bg-blue-100' : 'bg-gray-100'}`}>
-              <span className="text-sm font-medium">2</span>
-            </div>
-            <span className="ml-2 text-sm font-medium">保固信息</span>
-          </div>
-          <div className={`w-12 h-1 ${currentStep >= 3 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
-          <div className={`flex-1 flex items-center ${currentStep >= 3 ? 'text-blue-600' : 'text-gray-400'}`}>
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full ${currentStep >= 3 ? 'bg-blue-100' : 'bg-gray-100'}`}>
-              <span className="text-sm font-medium">3</span>
-            </div>
-            <span className="ml-2 text-sm font-medium">其他信息</span>
-          </div>
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit}>
-        {/* 步驟 1: 產品基本信息 */}
-        {currentStep === 1 && (
-          <div className="space-y-6">
-            <Card className="p-6 shadow-sm border border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-                <FontAwesomeIcon icon={faLaptop} className="mr-2 text-blue-600" />
-                產品基本信息
-              </h2>
-              
-              <div className="grid gap-x-6 gap-y-8 grid-cols-1 md:grid-cols-2">
-                {/* 產品名稱 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    產品名稱 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all"
-                    placeholder="例如：MacBook Pro 14-inch"
-                    required
-                  />
-                </div>
-
-                {/* 產品類型 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    產品類型 <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    name="type"
-                    value={formData.type}
-                    onChange={handleInputChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all"
-                    required
-                  >
-                    <option value="">選擇產品類型</option>
-                    {productTypes.map(type => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* 品牌 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    品牌 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="brand"
-                    value={formData.brand}
-                    onChange={handleInputChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all"
-                    placeholder="例如：Apple"
-                    required
-                  />
-                </div>
-
-                {/* 型號 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    型號 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="model"
-                    value={formData.model}
-                    onChange={handleInputChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all"
-                    placeholder="例如：M2, 2023"
-                    required
-                  />
-                </div>
-
-                {/* 序號 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    序號
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FontAwesomeIcon icon={faBarcode} className="text-gray-400" />
-                    </div>
-                    <input
-                      type="text"
-                      name="serialNumber"
-                      value={formData.serialNumber}
-                      onChange={handleInputChange}
-                      className="block w-full pl-10 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all"
-                      placeholder="選填，如：FVFXCXXXXXX"
-                    />
-                  </div>
-                  <p className="mt-1 text-sm text-gray-500">可在產品背面或包裝盒上找到</p>
-                </div>
-              </div>
-            </Card>
-
-            <div className="flex justify-end">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <div className="max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        {/* 標題導航 - 現代化設計 */}
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+            <div className="flex items-center space-x-4">
               <Button
-                type="button"
-                variant="primary"
-                onClick={handleNextStep}
-                disabled={!isStepComplete(1)}
-                className="px-6"
+                to="/products"
+                variant="light"
+                className="hover:bg-gray-100 transition-all duration-200"
+                icon={faArrowLeft}
               >
-                下一步：保固信息
+                返回
               </Button>
+              <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-blue-500">
+                添加新產品
+              </h1>
             </div>
+            <p className="mt-4 sm:mt-0 text-sm text-gray-500 max-w-lg">
+              添加產品及保固信息，以便追踪保固期限
+            </p>
           </div>
+        </div>
+
+        {error && (
+          <Alert
+            variant="error"
+            className="mb-6 animate-fade-in"
+            icon={faExclamationTriangle}
+          >
+            {error}
+          </Alert>
         )}
 
-        {/* 步驟 2: 保固信息 */}
-        {currentStep === 2 && (
-          <div className="space-y-6">
-            <Card className="p-6 shadow-sm border border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-                <FontAwesomeIcon icon={faCalendarAlt} className="mr-2 text-blue-600" />
-                保固信息
-              </h2>
+        {/* 步驟指示器 - 現代化設計 */}
+        <div className="mb-12">
+          <div className="relative">
+            {/* 步驟圖標 */}
+            <div className="relative flex justify-between items-center">
+              {/* 背景連接線 - 橫穿所有圖標 */}
+              <div className="absolute top-8 left-[8%] right-[8%] h-1.5 bg-gray-200 rounded-full z-0" />
               
-              <div className="grid gap-x-6 gap-y-8 grid-cols-1 md:grid-cols-2">
-                {/* 購買日期 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    購買日期 <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FontAwesomeIcon icon={faCalendarAlt} className="text-gray-400" />
-                    </div>
+              {/* 進度連接線 - 根據當前步驟顯示進度 */}
+              <div 
+                className={`
+                  absolute top-8 left-[8%] h-1.5 rounded-full
+                  bg-gradient-to-r from-blue-500 via-primary-500 to-indigo-500
+                  transition-all duration-500 ease-in-out z-0
+                `}
+                style={{
+                  width: currentStep === 1 ? '0%' : currentStep === 2 ? '45%' : '89%'
+                }}
+              />
+
+              {[
+                { 
+                  step: 1, 
+                  title: '基本信息',
+                  icon: faLaptop,
+                  description: '填寫產品名稱、類型等基本資料',
+                  iconBg: 'from-blue-500 to-primary-500'
+                },
+                { 
+                  step: 2, 
+                  title: '保固信息',
+                  icon: faCalendarAlt,
+                  description: '設定購買日期和保固期限',
+                  iconBg: 'from-primary-500 to-indigo-500'
+                },
+                { 
+                  step: 3, 
+                  title: '其他信息',
+                  icon: faFileAlt,
+                  description: '上傳圖片和相關文件',
+                  iconBg: 'from-indigo-500 to-blue-500'
+                }
+              ].map(({ step, title, icon, description, iconBg }) => (
+                <div
+                  key={step}
+                  className={`flex flex-col items-center group relative ${
+                    currentStep >= step
+                      ? 'text-primary-600'
+                      : 'text-gray-400'
+                  }`}
+                >
+                  {/* 步驟提示 */}
+                  <div className={`
+                    absolute -top-14 left-1/2 transform -translate-x-1/2
+                    bg-gradient-to-r from-primary-600 to-blue-600
+                    text-white text-xs py-2 px-4 rounded-xl whitespace-nowrap
+                    opacity-0 group-hover:opacity-100 transition-all duration-300
+                    pointer-events-none shadow-lg z-10
+                    before:content-[''] before:absolute before:top-full before:left-1/2
+                    before:-translate-x-1/2 before:border-8 before:border-transparent
+                    before:border-t-primary-600
+                  `}>
+                    步驟 {step}
+                  </div>
+
+                  {/* 步驟圖標 */}
+                  <div
+                    className={`
+                      relative flex items-center justify-center w-16 h-16 rounded-2xl z-10
+                      ${
+                        currentStep > step
+                          ? `bg-gradient-to-br ${iconBg} text-white shadow-lg shadow-primary-100`
+                          : currentStep === step
+                          ? 'bg-white text-primary-600 ring-4 ring-primary-100 shadow-lg'
+                          : 'bg-white text-gray-400 ring-4 ring-gray-100'
+                      }
+                      transform transition-all duration-300 ease-in-out
+                      ${currentStep >= step ? 'scale-100' : 'scale-90'}
+                      group-hover:scale-105
+                    `}
+                  >
+                    {currentStep > step ? (
+                      <div className="relative">
+                        <FontAwesomeIcon 
+                          icon={faCheck} 
+                          className="w-7 h-7 animate-scale-check" 
+                        />
+                        <div className="absolute inset-0 bg-white rounded-full animate-ring-expand opacity-0"></div>
+                      </div>
+                    ) : (
+                      <FontAwesomeIcon 
+                        icon={icon} 
+                        className={`w-7 h-7 transform transition-transform duration-300 ${
+                          currentStep === step ? 'scale-110' : 'scale-100'
+                        } group-hover:scale-110`}
+                      />
+                    )}
+                  </div>
+
+                  {/* 步驟標題和描述 */}
+                  <div className="mt-4 space-y-2 text-center">
+                    <p className={`text-sm font-bold transition-colors duration-300 ${
+                      currentStep >= step ? 'text-gray-900' : 'text-gray-400'
+                    }`}>
+                      {title}
+                    </p>
+                    <p className={`text-xs max-w-[120px] transition-colors duration-300 ${
+                      currentStep >= step ? 'text-gray-600' : 'text-gray-400'
+                    }`}>
+                      {description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* 步驟 1: 產品基本信息 */}
+          {currentStep === 1 && (
+            <div className="space-y-6">
+              <Card className="p-8 shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 bg-white rounded-2xl">
+                <h2 className="text-2xl font-bold text-gray-900 mb-8 flex items-center">
+                  <FontAwesomeIcon icon={faLaptop} className="mr-3 text-primary-600" />
+                  產品基本信息
+                </h2>
+                
+                <div className="grid gap-x-8 gap-y-6 grid-cols-1 md:grid-cols-2">
+                  {/* 產品名稱 */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      產品名稱 <span className="text-red-500">*</span>
+                    </label>
                     <input
-                      type="date"
-                      name="purchaseDate"
-                      value={formData.purchaseDate}
+                      type="text"
+                      name="name"
+                      value={formData.name}
                       onChange={handleInputChange}
-                      className="block w-full pl-10 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all"
+                      className="block w-full rounded-xl border-gray-200 shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                      placeholder="例如：MacBook Pro 14-inch"
                       required
                     />
                   </div>
-                </div>
 
-                {/* 保固期限 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    保固期限 <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    name="warrantyPeriod"
-                    value={formData.warrantyPeriod}
-                    onChange={handleInputChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all"
-                    required
-                  >
-                    {warrantyOptions.map(option => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* 保固到期預覽 */}
-                {formData.purchaseDate && formData.warrantyPeriod && (
-                  <div className="md:col-span-2 bg-blue-50 p-4 rounded-md">
-                    <p className="text-sm text-blue-800 flex items-center">
-                      <FontAwesomeIcon icon={faInfoCircle} className="mr-2" />
-                      根據您提供的信息，此產品的保固將於 
-                      <span className="font-bold mx-1">
-                        {(() => {
-                          const purchaseDate = new Date(formData.purchaseDate);
-                          const warrantyDays = parseInt(formData.warrantyPeriod) * 30.4167; // 平均每月天數
-                          const warrantyEndDate = new Date(purchaseDate);
-                          warrantyEndDate.setDate(warrantyEndDate.getDate() + Math.floor(warrantyDays) - 1); // 減一天，因為保固到當天結束
-                          return warrantyEndDate.toLocaleDateString('zh-TW');
-                        })()}
-                      </span>
-                      到期
-                    </p>
-                  </div>
-                )}
-              </div>
-            </Card>
-
-            <div className="flex justify-between">
-              <Button
-                type="button"
-                variant="light"
-                onClick={handlePrevStep}
-                className="px-6"
-              >
-                返回：基本信息
-              </Button>
-              <Button
-                type="button"
-                variant="primary"
-                onClick={handleNextStep}
-                disabled={!isStepComplete(2)}
-                className="px-6"
-              >
-                下一步：其他信息
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* 步驟 3: 其他信息 */}
-        {currentStep === 3 && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-              {/* 左側：產品描述和備註 */}
-              <div className="lg:col-span-2">
-                <Card className="p-6 shadow-sm border border-gray-200 h-full">
-                  <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-                    <FontAwesomeIcon icon={faFileAlt} className="mr-2 text-blue-600" />
-                    產品描述與備註
-                  </h2>
-                  
-                  {/* 產品描述 */}
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      產品描述
+                  {/* 產品類型 */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      產品類型 <span className="text-red-500">*</span>
                     </label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
+                    <select
+                      name="type"
+                      value={formData.type}
                       onChange={handleInputChange}
-                      rows="4"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all"
-                      placeholder="添加產品描述、配置、顏色等（選填）"
-                    ></textarea>
+                      className="block w-full rounded-xl border-gray-200 shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                      required
+                    >
+                      <option value="">選擇產品類型</option>
+                      {productTypes.map(type => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
-                  {/* 備註 */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      備註
+                  {/* 品牌 */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      品牌 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="brand"
+                      value={formData.brand}
+                      onChange={handleInputChange}
+                      className="block w-full rounded-xl border-gray-200 shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                      placeholder="例如：Apple"
+                      required
+                    />
+                  </div>
+
+                  {/* 型號 */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      型號 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="model"
+                      value={formData.model}
+                      onChange={handleInputChange}
+                      className="block w-full rounded-xl border-gray-200 shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                      placeholder="例如：M2, 2023"
+                      required
+                    />
+                  </div>
+
+                  {/* 序號 */}
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      序號
                     </label>
                     <div className="relative">
-                      <div className="absolute top-3 left-3 text-gray-400">
-                        <FontAwesomeIcon icon={faStickyNote} />
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <FontAwesomeIcon icon={faBarcode} className="text-gray-400" />
                       </div>
-                      <textarea
-                        name="notes"
-                        value={formData.notes}
+                      <input
+                        type="text"
+                        name="serialNumber"
+                        value={formData.serialNumber}
                         onChange={handleInputChange}
-                        rows="4"
-                        className="block w-full pl-9 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all"
-                        placeholder="添加任何其他重要信息（選填）"
-                      ></textarea>
+                        className="block w-full pl-12 rounded-xl border-gray-200 shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                        placeholder="選填，如：FVFXCXXXXXX"
+                      />
+                    </div>
+                    <p className="mt-2 text-sm text-gray-500 flex items-center">
+                      <FontAwesomeIcon icon={faInfoCircle} className="mr-2" />
+                      可在產品背面或包裝盒上找到
+                    </p>
+                  </div>
+                </div>
+              </Card>
+
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={handleNextStep}
+                  disabled={!isStepComplete(1)}
+                  className="px-8 py-3 rounded-xl hover:shadow-lg transition-all duration-200"
+                >
+                  下一步：保固信息
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* 步驟 2: 保固信息 */}
+          {currentStep === 2 && (
+            <div className="space-y-6">
+              <Card className="p-8 shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 bg-white rounded-2xl">
+                <h2 className="text-2xl font-bold text-gray-900 mb-8 flex items-center">
+                  <FontAwesomeIcon icon={faCalendarAlt} className="mr-3 text-primary-600" />
+                  保固信息
+                </h2>
+                
+                <div className="grid gap-x-8 gap-y-6 grid-cols-1 md:grid-cols-2">
+                  {/* 購買日期 */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      購買日期 <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <FontAwesomeIcon icon={faCalendarAlt} className="text-gray-400" />
+                      </div>
+                      <input
+                        type="date"
+                        name="purchaseDate"
+                        value={formData.purchaseDate}
+                        onChange={handleInputChange}
+                        className="block w-full pl-12 rounded-xl border-gray-200 shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                        required
+                      />
                     </div>
                   </div>
-                </Card>
-              </div>
 
-              {/* 右側：圖片和文件上傳 */}
-              <div className="lg:col-span-3">
-                {/* 產品圖片上傳 */}
-                <Card className="p-6 shadow-sm border border-gray-200 mb-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-                    <FontAwesomeIcon icon={faImage} className="mr-2 text-blue-600" />
-                    產品圖片
-                  </h2>
-                  
-                  {/* 圖片上傳區域 */}
-                  <div className="mb-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {images.length === 0 ? (
-                        <div className="sm:col-span-3">
-                          <label className="flex flex-col items-center justify-center h-60 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all">
-                            <div className="flex flex-col items-center pt-5 pb-6">
-                              <FontAwesomeIcon icon={faUpload} className="h-10 w-10 text-gray-400 mb-3" />
-                              <p className="mb-2 text-sm text-gray-500">
-                                <span className="font-semibold">點擊上傳</span> 或拖放
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                PNG, JPG 或 WEBP (最大 5MB)
-                              </p>
+                  {/* 保固期限 */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      保固期限 <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="warrantyPeriod"
+                      value={formData.warrantyPeriod}
+                      onChange={handleInputChange}
+                      className="block w-full rounded-xl border-gray-200 shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                      required
+                    >
+                      {warrantyOptions.map(option => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* 保固到期預覽 */}
+                  {formData.purchaseDate && formData.warrantyPeriod && (
+                    <div className="md:col-span-2">
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100">
+                        <p className="text-sm text-blue-800 flex items-center">
+                          <FontAwesomeIcon icon={faInfoCircle} className="mr-3 text-blue-500" />
+                          根據您提供的信息，此產品的保固將於 
+                          <span className="font-bold mx-2 text-primary-600">
+                            {(() => {
+                              const purchaseDate = new Date(formData.purchaseDate);
+                              const warrantyDays = parseInt(formData.warrantyPeriod) * 30.4167;
+                              const warrantyEndDate = new Date(purchaseDate);
+                              warrantyEndDate.setDate(warrantyEndDate.getDate() + Math.floor(warrantyDays) - 1);
+                              return warrantyEndDate.toLocaleDateString('zh-TW');
+                            })()}
+                          </span>
+                          到期
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Card>
+
+              <div className="flex justify-between">
+                <Button
+                  type="button"
+                  variant="light"
+                  onClick={handlePrevStep}
+                  className="px-8 py-3 rounded-xl hover:bg-gray-100 transition-all duration-200"
+                >
+                  返回：基本信息
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={handleNextStep}
+                  disabled={!isStepComplete(2)}
+                  className="px-8 py-3 rounded-xl hover:shadow-lg transition-all duration-200"
+                >
+                  下一步：其他信息
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* 步驟 3: 其他信息 */}
+          {currentStep === 3 && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                {/* 左側：產品描述和備註 */}
+                <div className="lg:col-span-2">
+                  <Card className="p-8 shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 bg-white rounded-2xl h-full">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-8 flex items-center">
+                      <FontAwesomeIcon icon={faFileAlt} className="mr-3 text-primary-600" />
+                      產品描述與備註
+                    </h2>
+                    
+                    {/* 產品描述 */}
+                    <div className="mb-8">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        產品描述
+                      </label>
+                      <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        rows="4"
+                        className="block w-full rounded-xl border-gray-200 shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                        placeholder="添加產品描述、配置、顏色等（選填）"
+                      ></textarea>
+                    </div>
+
+                    {/* 備註 */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        備註
+                      </label>
+                      <div className="relative">
+                        <div className="absolute top-3 left-4 text-gray-400">
+                          <FontAwesomeIcon icon={faStickyNote} />
+                        </div>
+                        <textarea
+                          name="notes"
+                          value={formData.notes}
+                          onChange={handleInputChange}
+                          rows="4"
+                          className="block w-full pl-12 rounded-xl border-gray-200 shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                          placeholder="添加任何其他重要信息（選填）"
+                        ></textarea>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+
+                {/* 右側：圖片和文件上傳 */}
+                <div className="lg:col-span-3 space-y-8">
+                  {/* 產品圖片上傳 */}
+                  <Card className="p-8 shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 bg-white rounded-2xl">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-8 flex items-center">
+                      <FontAwesomeIcon icon={faImage} className="mr-3 text-primary-600" />
+                      產品圖片
+                    </h2>
+                    
+                    {/* 圖片上傳區域 */}
+                    <div className="mb-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        {images.length === 0 ? (
+                          <div className="sm:col-span-3">
+                            <label className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-primary-500 transition-all duration-200">
+                              <div className="flex flex-col items-center pt-5 pb-6">
+                                <FontAwesomeIcon icon={faUpload} className="h-12 w-12 text-gray-400 mb-4" />
+                                <p className="mb-2 text-sm text-gray-500">
+                                  <span className="font-semibold text-primary-600">點擊上傳</span> 或拖放
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  PNG, JPG 或 WEBP (最大 5MB)
+                                </p>
+                              </div>
+                              <input
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                multiple
+                                onChange={handleImageUpload}
+                              />
+                            </label>
+                          </div>
+                        ) : (
+                          <>
+                            {images.map((image, index) => (
+                              <div key={index} className="relative group">
+                                <div className="aspect-w-1 aspect-h-1 rounded-xl overflow-hidden shadow-md group-hover:shadow-lg transition-all duration-200">
+                                  <img
+                                    src={image.preview}
+                                    alt={`產品圖片 ${index + 1}`}
+                                    className="object-cover w-full h-full"
+                                  />
+                                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200"></div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveImage(index)}
+                                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 hover:bg-red-600 shadow-lg transform scale-90 hover:scale-100 transition-all duration-200"
+                                >
+                                  <FontAwesomeIcon icon={faTimes} className="h-3 w-3" />
+                                </button>
+                              </div>
+                            ))}
+                            
+                            {images.length < 5 && (
+                              <div className="aspect-w-1 aspect-h-1">
+                                <label className="flex flex-col items-center justify-center h-full border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-primary-500 hover:bg-primary-50 transition-all duration-200">
+                                  <FontAwesomeIcon icon={faImage} className="h-8 w-8 text-gray-400 mb-2" />
+                                  <span className="text-sm text-gray-500">添加更多圖片</span>
+                                  <input
+                                    type="file"
+                                    className="hidden"
+                                    accept="image/*"
+                                    multiple
+                                    onChange={handleImageUpload}
+                                  />
+                                </label>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      {imageError && (
+                        <p className="mt-3 text-sm text-red-600 flex items-center">
+                          <FontAwesomeIcon icon={faExclamationTriangle} className="mr-2" />
+                          {imageError}
+                        </p>
+                      )}
+                    </div>
+                  </Card>
+
+                  {/* 收據上傳 */}
+                  <Card className="p-8 shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 bg-white rounded-2xl">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-8 flex items-center">
+                      <FontAwesomeIcon icon={faFileAlt} className="mr-3 text-primary-600" />
+                      收據
+                    </h2>
+                    
+                    <div className="mb-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        {receipts.map((doc, index) => (
+                          <div key={index} className="relative group">
+                            <div className="p-6 border border-gray-200 rounded-xl bg-white hover:shadow-md transition-all duration-200">
+                              <div className="flex items-center">
+                                <div className="bg-primary-100 p-3 rounded-lg text-primary-600 mr-4">
+                                  <FontAwesomeIcon icon={doc.type.startsWith('image/') ? faImage : faFileAlt} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 truncate">
+                                    {doc.name}
+                                  </p>
+                                </div>
+                              </div>
                             </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveDoc(index, 'receipt')}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 hover:bg-red-600 shadow-lg transform scale-90 hover:scale-100 transition-all duration-200"
+                            >
+                              <FontAwesomeIcon icon={faTimes} className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                        
+                        <div className="relative">
+                          <label className="flex flex-col items-center justify-center h-36 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-primary-500 hover:bg-primary-50 transition-all duration-200">
+                            <FontAwesomeIcon icon={faFileAlt} className="h-8 w-8 text-gray-400 mb-2" />
+                            <span className="text-sm text-gray-500">上傳收據</span>
                             <input
                               type="file"
                               className="hidden"
-                              accept="image/*"
+                              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp"
                               multiple
-                              onChange={handleImageUpload}
+                              onChange={(e) => handleDocUpload(e, 'receipt')}
                             />
                           </label>
                         </div>
-                      ) : (
-                        <>
-                          {images.map((image, index) => (
-                            <div key={index} className="relative aspect-w-1 aspect-h-1">
-                              <img
-                                src={image.preview}
-                                alt={`產品圖片 ${index + 1}`}
-                                className="object-cover rounded-lg shadow-sm h-48 w-full"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveImage(index)}
-                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-md transition-all"
-                              >
-                                <FontAwesomeIcon icon={faTimes} className="h-3 w-3" />
-                              </button>
-                            </div>
-                          ))}
-                          
-                          {images.length < 5 && (
-                            <div className="aspect-w-1 aspect-h-1">
-                              <label className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all">
-                                <FontAwesomeIcon icon={faImage} className="h-8 w-8 text-gray-400 mb-2" />
-                                <span className="text-sm text-gray-500">添加更多圖片</span>
-                                <input
-                                  type="file"
-                                  className="hidden"
-                                  accept="image/*"
-                                  multiple
-                                  onChange={handleImageUpload}
-                                />
-                              </label>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-                    {imageError && (
-                      <p className="mt-2 text-sm text-red-600 flex items-center">
-                        <FontAwesomeIcon icon={faExclamationTriangle} className="mr-1" />
-                        {imageError}
-                      </p>
-                    )}
-                    <p className="mt-3 text-sm text-gray-500">
-                      上傳產品圖片、收據或保固文件，以便日後查閱
-                    </p>
-                  </div>
-                </Card>
-
-                {/* 收據上傳 */}
-                <Card className="p-6 shadow-sm border border-gray-200 mb-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-                    <FontAwesomeIcon icon={faFileAlt} className="mr-2 text-blue-600" />
-                    收據
-                  </h2>
-                  
-                  <div className="mb-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {receipts.map((doc, index) => (
-                        <div key={index} className="relative">
-                          <div className="p-4 border border-gray-200 rounded-lg">
-                            <div className="flex items-center">
-                              <div className="bg-blue-100 p-2 rounded text-blue-600 mr-3">
-                                <FontAwesomeIcon icon={doc.type.startsWith('image/') ? faImage : faFileAlt} />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-900 truncate">
-                                  {doc.name}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveDoc(index, 'receipt')}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-md transition-all"
-                          >
-                            <FontAwesomeIcon icon={faTimes} className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ))}
-                      
-                      <div className="relative">
-                        <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all">
-                          <FontAwesomeIcon icon={faFileAlt} className="h-8 w-8 text-gray-400 mb-2" />
-                          <span className="text-sm text-gray-500">上傳收據</span>
-                          <input
-                            type="file"
-                            className="hidden"
-                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp"
-                            multiple
-                            onChange={(e) => handleDocUpload(e, 'receipt')}
-                          />
-                        </label>
                       </div>
                     </div>
-                  </div>
-                </Card>
+                  </Card>
 
-                {/* 保固文件上傳 */}
-                <Card className="p-6 shadow-sm border border-gray-200">
-                  <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-                    <FontAwesomeIcon icon={faFileAlt} className="mr-2 text-green-600" />
-                    保固文件
-                  </h2>
-                  
-                  <div className="mb-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {warrantyDocs.map((doc, index) => (
-                        <div key={index} className="relative">
-                          <div className="p-4 border border-gray-200 rounded-lg">
-                            <div className="flex items-center">
-                              <div className="bg-green-100 p-2 rounded text-green-600 mr-3">
-                                <FontAwesomeIcon icon={doc.type.startsWith('image/') ? faImage : faFileAlt} />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-900 truncate">
-                                  {doc.name}
-                                </p>
+                  {/* 保固文件上傳 */}
+                  <Card className="p-8 shadow-lg hover:shadow-xl transition-shadow duration-200 border-0 bg-white rounded-2xl">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-8 flex items-center">
+                      <FontAwesomeIcon icon={faFileAlt} className="mr-3 text-green-600" />
+                      保固文件
+                    </h2>
+                    
+                    <div className="mb-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        {warrantyDocs.map((doc, index) => (
+                          <div key={index} className="relative group">
+                            <div className="p-6 border border-gray-200 rounded-xl bg-white hover:shadow-md transition-all duration-200">
+                              <div className="flex items-center">
+                                <div className="bg-green-100 p-3 rounded-lg text-green-600 mr-4">
+                                  <FontAwesomeIcon icon={doc.type.startsWith('image/') ? faImage : faFileAlt} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 truncate">
+                                    {doc.name}
+                                  </p>
+                                </div>
                               </div>
                             </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveDoc(index, 'warranty')}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 hover:bg-red-600 shadow-lg transform scale-90 hover:scale-100 transition-all duration-200"
+                            >
+                              <FontAwesomeIcon icon={faTimes} className="h-3 w-3" />
+                            </button>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveDoc(index, 'warranty')}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-md transition-all"
-                          >
-                            <FontAwesomeIcon icon={faTimes} className="h-3 w-3" />
-                          </button>
+                        ))}
+                        
+                        <div className="relative">
+                          <label className="flex flex-col items-center justify-center h-36 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-primary-500 hover:bg-primary-50 transition-all duration-200">
+                            <FontAwesomeIcon icon={faFileAlt} className="h-8 w-8 text-gray-400 mb-2" />
+                            <span className="text-sm text-gray-500">上傳保固文件</span>
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp"
+                              multiple
+                              onChange={(e) => handleDocUpload(e, 'warranty')}
+                            />
+                          </label>
                         </div>
-                      ))}
-                      
-                      <div className="relative">
-                        <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all">
-                          <FontAwesomeIcon icon={faFileAlt} className="h-8 w-8 text-gray-400 mb-2" />
-                          <span className="text-sm text-gray-500">上傳保固文件</span>
-                          <input
-                            type="file"
-                            className="hidden"
-                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp"
-                            multiple
-                            onChange={(e) => handleDocUpload(e, 'warranty')}
-                          />
-                        </label>
                       </div>
                     </div>
-                  </div>
-                </Card>
+                  </Card>
+                </div>
+              </div>
+
+              <div className="flex justify-between mt-8">
+                <Button
+                  type="button"
+                  variant="light"
+                  onClick={handlePrevStep}
+                  className="px-8 py-3 rounded-xl hover:bg-gray-100 transition-all duration-200"
+                >
+                  返回：保固信息
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  loading={loading}
+                  disabled={loading}
+                  className="px-10 py-3 rounded-xl hover:shadow-lg transition-all duration-200"
+                  icon={loading ? faSpinner : faCheck}
+                >
+                  {loading ? '添加中...' : '添加產品'}
+                </Button>
               </div>
             </div>
+          )}
+        </form>
 
-            <div className="flex justify-between mt-6">
-              <Button
-                type="button"
-                variant="light"
-                onClick={handlePrevStep}
-                className="px-6"
-              >
-                返回：保固信息
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                loading={loading}
-                disabled={loading}
-                className="px-10"
-                icon={loading ? faSpinner : faCheck}
-              >
-                {loading ? '添加中...' : '添加產品'}
-              </Button>
-            </div>
-          </div>
-        )}
-      </form>
-
-      {/* 底部信息 */}
-      <div className="mt-10 text-center text-sm text-gray-500">
-        <p>添加後，您可以隨時編輯產品信息和上傳更多文件</p>
+        {/* 底部信息 */}
+        <div className="mt-12 text-center">
+          <p className="text-sm text-gray-500 bg-gray-50 inline-block px-6 py-3 rounded-full">
+            添加後，您可以隨時編輯產品信息和上傳更多文件
+          </p>
+        </div>
       </div>
     </div>
   );
