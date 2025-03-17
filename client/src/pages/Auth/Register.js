@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEnvelope, faLock, faUser, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faLock, faUser, faEye, faEyeSlash, faShieldAlt, faUserPlus } from '@fortawesome/free-solid-svg-icons';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import Alert from '../../components/ui/Alert';
@@ -158,125 +158,135 @@ const Register = () => {
   };
 
   return (
-    <div>
-      <div className="mb-6 text-center">
-        <h2 className="text-2xl font-bold text-gray-900">註冊新帳戶</h2>
-        <p className="mt-2 text-sm text-gray-600">
-          或{' '}
-          <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
-            登入現有帳戶
-          </Link>
-        </p>
+    <div className="h-[73.5vh] w-full flex items-center justify-center bg-gray-50 overflow-hidden">
+      {/* 背景卡片（僅在中大型裝置上顯示） */}
+      <div className="hidden md:block absolute inset-0 flex items-center justify-center">
+        <div className="w-full max-w-lg mx-auto bg-gradient-to-r from-blue-300 to-purple-300 rounded-2xl shadow-lg opacity-20 transform scale-105"></div>
       </div>
-      
-      {registerError && (
-        <Alert 
-          variant="error" 
-          title="註冊失敗" 
-          className="mb-4"
-          dismissible
-          onDismiss={() => setRegisterError(null)}
-        >
-          {registerError}
-        </Alert>
-      )}
-      
-      <form className="space-y-4" onSubmit={handleSubmit} noValidate>
-        <Input
-          id="username"
-          name="username"
-          type="text"
-          label="用戶名"
-          value={formData.username}
-          onChange={handleChange}
-          placeholder="請輸入3個字符以上的用戶名"
-          required
-          icon={faUser}
-          error={errors.username}
-          autoComplete="username"
-          className={errors.username ? 'border-red-500' : ''}
-          helper="用戶名只能包含字母、數字和底線"
-        />
+
+      {/* 前方的註冊資訊卡片 */}
+      <div className="relative w-full max-w-md mx-auto bg-white p-3 shadow rounded-2xl flex flex-col">
+        <div className="mb-1 flex flex-col items-center">
+          <div className="bg-primary-100 p-1 rounded-full">
+            <FontAwesomeIcon icon={faUserPlus} className="text-primary-600 text-base" />
+          </div>
+          <h2 className="text-base font-semibold text-gray-800 mt-0.5">創建新帳戶</h2>
+          <p className="text-xs text-gray-600">加入我們，開始您的旅程</p>
+        </div>
         
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          label="電子郵件"
-          value={formData.email}
-          onChange={handleChange}
-          placeholder="your-email@example.com"
-          required
-          icon={faEnvelope}
-          error={errors.email}
-          autoComplete="email"
-          className={errors.email ? 'border-red-500' : ''}
-        />
-        
-        <div className="relative">
-          <Input
-            id="password"
-            name="password"
-            type={showPasswords.password ? "text" : "password"}
-            label="密碼"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="至少6個字符"
-            required
-            icon={faLock}
-            error={errors.password}
-            helper="密碼需要包含大小寫字母和數字"
-            autoComplete="new-password"
-            className={errors.password ? 'border-red-500' : ''}
-          />
-          <button
-            type="button"
-            onClick={() => togglePasswordVisibility('password')}
-            className="absolute right-3 top-9 text-gray-400 hover:text-gray-600 focus:outline-none"
+        {registerError && (
+          <Alert 
+            variant="error" 
+            title="註冊失敗" 
+            className="mb-1"
+            dismissible
+            onDismiss={() => setRegisterError(null)}
           >
-            <FontAwesomeIcon icon={showPasswords.password ? faEyeSlash : faEye} />
-          </button>
-        </div>
+            {registerError}
+          </Alert>
+        )}
         
-        <div className="relative">
+        <form className="space-y-2 flex-1" onSubmit={handleSubmit} noValidate>
           <Input
-            id="confirmPassword"
-            name="confirmPassword"
-            type={showPasswords.confirmPassword ? "text" : "password"}
-            label="確認密碼"
-            value={formData.confirmPassword}
+            id="username"
+            name="username"
+            type="text"
+            label="用戶名"
+            value={formData.username}
             onChange={handleChange}
-            placeholder="再次輸入密碼"
+            placeholder="請輸入3個字符以上的用戶名"
             required
-            icon={faLock}
-            error={errors.confirmPassword}
-            autoComplete="new-password"
-            className={errors.confirmPassword ? 'border-red-500' : ''}
+            icon={faUser}
+            error={errors.username}
+            autoComplete="username"
+            className={errors.username ? 'border-red-500' : ''}
+            helper="用戶名只能包含字母、數字和底線"
+            containerClassName="mb-0"
           />
-          <button
-            type="button"
-            onClick={() => togglePasswordVisibility('confirmPassword')}
-            className="absolute right-3 top-9 text-gray-400 hover:text-gray-600 focus:outline-none"
-          >
-            <FontAwesomeIcon icon={showPasswords.confirmPassword ? faEyeSlash : faEye} />
-          </button>
-        </div>
-        
-        <div className="mt-1">
-          <p className="text-xs text-gray-500">
-            點擊註冊，表示您同意我們的{' '}
-            <Link to="/terms" className="text-primary-600 hover:text-primary-500">
-              使用條款
-            </Link>{' '}
-            和{' '}
-            <Link to="/privacy" className="text-primary-600 hover:text-primary-500">
-              隱私政策
-            </Link>
-            。
-          </p>
-        </div>
-        
-        <div className="mt-6">
+          
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            label="電子郵件"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="your-email@example.com"
+            required
+            icon={faEnvelope}
+            error={errors.email}
+            autoComplete="email"
+            className={errors.email ? 'border-red-500' : ''}
+            containerClassName="mb-0"
+          />
+          
+          <div className="relative">
+            <Input
+              id="password"
+              name="password"
+              type={showPasswords.password ? "text" : "password"}
+              label="密碼"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="至少6個字符"
+              required
+              icon={faLock}
+              error={errors.password}
+              helper="密碼需要包含大小寫字母和數字"
+              autoComplete="new-password"
+              className={errors.password ? 'border-red-500' : ''}
+              containerClassName="mb-0"
+            />
+            <button
+              type="button"
+              onClick={() => togglePasswordVisibility('password')}
+              className="absolute right-3 top-8 text-gray-400 hover:text-gray-600 focus:outline-none transition-colors duration-200"
+              aria-label={showPasswords.password ? "隱藏密碼" : "顯示密碼"}
+            >
+              <FontAwesomeIcon icon={showPasswords.password ? faEyeSlash : faEye} />
+            </button>
+          </div>
+          
+          <div className="relative">
+            <Input
+              id="confirmPassword"
+              name="confirmPassword"
+              type={showPasswords.confirmPassword ? "text" : "password"}
+              label="確認密碼"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="再次輸入密碼"
+              required
+              icon={faLock}
+              error={errors.confirmPassword}
+              autoComplete="new-password"
+              className={errors.confirmPassword ? 'border-red-500' : ''}
+              containerClassName="mb-0"
+            />
+            <button
+              type="button"
+              onClick={() => togglePasswordVisibility('confirmPassword')}
+              className="absolute right-3 top-8 text-gray-400 hover:text-gray-600 focus:outline-none transition-colors duration-200"
+              aria-label={showPasswords.confirmPassword ? "隱藏密碼" : "顯示密碼"}
+            >
+              <FontAwesomeIcon icon={showPasswords.confirmPassword ? faEyeSlash : faEye} />
+            </button>
+          </div>
+          
+          <div className="mt-0.5">
+            <p className="text-[11px] text-gray-500 leading-tight">
+              點擊註冊，表示您同意我們的{' '}
+              <Link to="/terms" className="text-primary-600 hover:text-primary-700 transition-colors duration-200">
+                使用條款
+              </Link>{' '}
+              和{' '}
+              <Link to="/privacy" className="text-primary-600 hover:text-primary-700 transition-colors duration-200">
+                隱私政策
+              </Link>
+              。
+            </p>
+          </div>
+          
           <Button
             type="submit"
             variant="primary"
@@ -284,11 +294,21 @@ const Register = () => {
             size="lg"
             loading={isSubmitting}
             disabled={isSubmitting}
+            className="w-full py-1.5 rounded-lg mt-1 transition transform hover:-translate-y-0.5 hover:shadow-md text-sm"
           >
             {isSubmitting ? '註冊中...' : '註冊'}
           </Button>
-        </div>
-      </form>
+          
+          <div className="text-center mt-1">
+            <p className="text-xs text-gray-600">
+              已有帳戶？{' '}
+              <Link to="/login" className="font-medium text-primary-600 hover:text-primary-700 transition-colors duration-200">
+                立即登入
+              </Link>
+            </p>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
