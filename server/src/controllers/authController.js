@@ -23,7 +23,11 @@ exports.register = async (req, res, next) => {
     });
     
     if (existingUser) {
-      return next(new ErrorResponse('用戶名或電子郵件已被使用', 400));
+      return res.status(200).json({
+        success: false,
+        type: 'validation',
+        message: '用戶名或電子郵件已被使用'
+      });
     }
     
     // 創建用戶
@@ -35,7 +39,7 @@ exports.register = async (req, res, next) => {
     });
     
     // 發送令牌響應
-    sendTokenResponse(user, 201, res);
+    sendTokenResponse(user, 200, res);
   } catch (error) {
     next(error);
   }
@@ -46,33 +50,63 @@ exports.register = async (req, res, next) => {
  * @route POST /api/auth/login
  * @access Public
  */
-exports.login = async (req, res, next) => {
+exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
     
     // 驗證輸入
     if (!email || !password) {
-      return next(new ErrorResponse('請提供電子郵件和密碼', 400));
+      return res.status(200).json({
+        success: false,
+        type: 'validation',
+        message: '請提供電子郵件和密碼'
+      });
     }
     
     // 檢查用戶是否存在
     const user = await User.findOne({ email }).select('+password');
     
     if (!user) {
-      return next(new ErrorResponse('找不到此電子郵件帳號', 401));
+      return res.status(200).json({
+        success: false,
+        type: 'email',
+        message: '找不到此電子郵件帳號'
+      });
     }
     
     // 檢查密碼是否匹配
     const isMatch = await user.matchPassword(password);
     
     if (!isMatch) {
-      return next(new ErrorResponse('密碼錯誤', 401));
+      return res.status(200).json({
+        success: false,
+        type: 'password',
+        message: '密碼錯誤'
+      });
     }
     
-    // 發送令牌響應
-    sendTokenResponse(user, 200, res);
+    // 生成令牌
+    const token = user.getSignedJwtToken();
+    
+    // 設置Cookie選項
+    const options = {
+      ...cookieConfig,
+      expires: new Date(Date.now() + cookieConfig.maxAge)
+    };
+    
+    res
+      .status(200)
+      .cookie('token', token, options)
+      .json({
+        success: true,
+        token
+      });
   } catch (error) {
-    next(error);
+    res.status(200).json({
+      success: false,
+      type: 'server',
+      message: '登入過程中發生錯誤，請稍後再試'
+    });
   }
 };
 
@@ -127,7 +161,11 @@ exports.forgotPassword = async (req, res, next) => {
     const user = await User.findOne({ email });
     
     if (!user) {
-      return next(new ErrorResponse('沒有與該電子郵件關聯的用戶', 404));
+      return res.status(200).json({
+        success: false,
+        type: 'email',
+        message: '沒有與該電子郵件關聯的用戶'
+      });
     }
     
     // 獲取重置令牌
@@ -148,7 +186,6 @@ exports.forgotPassword = async (req, res, next) => {
       //   message
       // });
       
-      // 由於這是示例，我們只返回令牌
       res.status(200).json({
         success: true,
         data: {
@@ -164,7 +201,11 @@ exports.forgotPassword = async (req, res, next) => {
       
       await user.save({ validateBeforeSave: false });
       
-      return next(new ErrorResponse('無法發送電子郵件', 500));
+      return res.status(200).json({
+        success: false,
+        type: 'server',
+        message: '無法發送電子郵件'
+      });
     }
   } catch (error) {
     next(error);
@@ -190,7 +231,11 @@ exports.resetPassword = async (req, res, next) => {
     });
     
     if (!user) {
-      return next(new ErrorResponse('無效的令牌', 400));
+      return res.status(200).json({
+        success: false,
+        type: 'validation',
+        message: '無效的令牌'
+      });
     }
     
     // 設置新密碼
@@ -220,7 +265,11 @@ exports.updatePassword = async (req, res, next) => {
     
     // 檢查當前密碼
     if (!(await user.matchPassword(currentPassword))) {
-      return next(new ErrorResponse('密碼不正確', 401));
+      return res.status(200).json({
+        success: false,
+        type: 'password',
+        message: '密碼不正確'
+      });
     }
     
     user.password = newPassword;
@@ -258,4 +307,4 @@ const sendTokenResponse = (user, statusCode, res) => {
       success: true,
       token
     });
-}; 
+};

@@ -104,7 +104,7 @@ const Navbar = ({ onToggleSidebar, user, onLogout }) => {
         <div className="flex justify-between h-16">
           <div className="flex">
             {/* 手機版漢堡選單 */}
-            <div className="flex items-center md:hidden">
+            <div className="flex items-center 2xl:hidden">
               <button
                 onClick={onToggleSidebar}
                 className="text-gray-500 hover:text-gray-700 focus:outline-none p-2 rounded-md"
@@ -115,7 +115,7 @@ const Navbar = ({ onToggleSidebar, user, onLogout }) => {
             </div>
 
             {/* Logo */}
-            <div className="flex-shrink-0 flex items-center ml-4 md:ml-0">
+            <div className="flex-shrink-0 flex items-center ml-4 2xl:ml-0">
               <Link to="/dashboard" className="text-xl font-bold text-primary-600">
                 電子產品保固記錄
               </Link>
@@ -236,4 +236,4 @@ const Navbar = ({ onToggleSidebar, user, onLogout }) => {
   );
 };
 
-export default Navbar; 
+export default Navbar;

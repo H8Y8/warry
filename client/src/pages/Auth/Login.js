@@ -44,28 +44,35 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+    
     setIsSubmitting(true);
     setLoginError(null);
     setErrors({});
-    try {
-      const result = await login(formData.email, formData.password);
-      if (!result.success) {
-        const errorMessage = result.message;
-        if (errorMessage.includes('密碼錯誤')) {
-          setErrors((prev) => ({ ...prev, password: '密碼錯誤' }));
-          setFormData((prev) => ({ ...prev, password: '' }));
-        } else if (errorMessage.includes('找不到此電子郵件')) {
-          setErrors((prev) => ({ ...prev, email: '找不到此電子郵件帳號' }));
-        } else {
-          setLoginError(errorMessage);
-        }
+
+    const response = await login(formData.email, formData.password);
+    console.log('[Login] 登入結果:', response);
+    
+    if (!response.success) {
+      const { type, message } = response;
+      
+      // 根據伺服器返回的錯誤類型顯示對應的錯誤信息
+      switch (type) {
+        case 'password':
+          setErrors(prev => ({ ...prev, password: message }));
+          setFormData(prev => ({ ...prev, password: '' }));
+          break;
+        case 'email':
+          setErrors(prev => ({ ...prev, email: message }));
+          break;
+        case 'network':
+          setLoginError(message);
+          break;
+        default:
+          setLoginError(message || '登入失敗，請稍後再試');
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      setLoginError('登入過程中發生錯誤，請稍後再試');
-    } finally {
-      setIsSubmitting(false);
     }
+    
+    setIsSubmitting(false);
   };
 
   const togglePasswordVisibility = () => {
@@ -80,7 +87,7 @@ const Login = () => {
       </div>
 
       {/* 前方的登入資訊卡片 */}
-      <div className="relative w-full max-w-md mx-auto bg-white p-4 shadow rounded-2xl flex flex-col max-h-[85vh] overflow-y-auto">
+      <div className="relative w-full max-w-md mx-auto bg-white p-4 shadow rounded-2xl flex flex-col max-h-[85vh] overflow-y-auto space-y-4">
         <div className="mb-2 flex flex-col items-center">
           <div className="bg-primary-100 p-1.5 rounded-full">
             <FontAwesomeIcon icon={faShieldAlt} className="text-primary-600 text-lg" />
@@ -89,18 +96,19 @@ const Login = () => {
           <p className="text-sm text-gray-600">請登入您的帳戶以繼續</p>
         </div>
 
+        {/* 錯誤提示區域 - 全局錯誤 */}
         {loginError && (
           <Alert 
             variant="error" 
             title="登入失敗" 
-            className="mb-2"
+            className="mb-2 border-2 border-red-400 animate-pulse"
             dismissible
             onDismiss={() => setLoginError(null)}
           >
-            {loginError}
+            <div className="font-medium">{loginError}</div>
           </Alert>
         )}
-
+        
         <form className="space-y-2 flex-1" onSubmit={handleSubmit} noValidate>
           <Input
             id="email"

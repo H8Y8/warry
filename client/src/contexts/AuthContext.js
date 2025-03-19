@@ -34,16 +34,40 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.post('/api/auth/login', { email, password });
-      const { token } = response.data;
+      const { data: responseData } = await api.post('/api/auth/login', { email, password });
+      
+      if (!responseData.success) {
+        console.log('[驗證測試] 登入失敗:', responseData);
+        return responseData; // 直接返回伺服器的響應，包含 success, type, message
+      }
+
+      // 登入成功，設置 token
+      const { token } = responseData;
       localStorage.setItem('token', token);
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       await checkAuthStatus();
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.error || '登入失敗，請檢查您的憑證';
-      setError(message);
-      return { success: false, message };
+      // 檢查是否為自定義錯誤（後端返回的錯誤）
+      if (error.isCustomError) {
+        console.error('[驗證測試] 網路請求錯誤:', error);
+        // 保留原始錯誤類型，不轉換為網絡錯誤
+        return {
+          success: false,
+          type: error.type,
+          message: error.message
+        };
+      } else {
+        // 處理真正的網絡錯誤
+        console.error('[驗證測試] 網路連線錯誤:', error);
+        const networkError = {
+          success: false,
+          type: 'network',
+          message: '網路連線異常，請檢查網路後重試'
+        };
+        setError(networkError.message);
+        return networkError;
+      }
     } finally {
       setLoading(false);
     }
@@ -168,4 +192,4 @@ export const AuthProvider = ({ children }) => {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}; 
+};

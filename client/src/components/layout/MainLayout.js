@@ -1,27 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faBars, faTimes, faHome, faLaptop, faCog, 
-  faBell, faSignOutAlt, faRobot 
-} from '@fortawesome/free-solid-svg-icons';
+import { useAuth } from '../../contexts/AuthContext';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
-import { useAuth } from '../../contexts/AuthContext';
-
-// 側邊欄菜單項目
-const menuItems = [
-  { path: '/dashboard', label: '儀表板', icon: faHome },
-  { path: '/products', label: '產品列表', icon: faLaptop },
-  { path: '/warranty-alerts', label: '保固提醒', icon: faBell },
-  { path: '/ai-analysis', label: 'AI產品分析', icon: faRobot },
-  { path: '/profile', label: '個人設置', icon: faCog },
-];
 
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
+
+  // 監控側邊欄狀態變化
+  useEffect(() => {
+    console.log('Sidebar state changed:', sidebarOpen);
+  }, [sidebarOpen]);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -39,14 +30,14 @@ const MainLayout = () => {
     <div className="flex h-screen bg-gray-100 overflow-hidden">
       {/* 側邊欄 */}
       <Sidebar 
-        isOpen={sidebarOpen} 
+        isOpen={sidebarOpen}
         onClose={closeSidebar}
-        menuItems={menuItems}
+        user={user}
         onLogout={handleLogout}
       />
-
+      
       {/* 主內容區 */}
-      <div className="flex flex-col flex-1 w-0 min-w-0 overflow-hidden">
+      <div className="flex flex-col flex-1 w-0 min-w-0 overflow-hidden 2xl:ml-64 transition-all duration-300">
         {/* 導航欄 */}
         <Navbar 
           onToggleSidebar={toggleSidebar}
@@ -68,4 +59,4 @@ const MainLayout = () => {
   );
 };
 
-export default MainLayout; 
+export default MainLayout;

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 console.log('API 基礎 URL:', baseURL);
 
@@ -32,29 +32,32 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     console.log('收到響應:', response.status, response.data);
+    
+    // 登入請求失敗時不做跳轉
+    if (response.config.url.includes('/auth/login')) {
+      console.log('登入請求響應:', response.data);
+      if (!response.data.success) {
+        return Promise.reject({
+          response,
+          isCustomError: true,
+          ...response.data
+        });
+      }
+    }
+    
     return response;
   },
   (error) => {
     if (error.response) {
-      console.error('響應錯誤:', error.response.status, error.response.data);
+      console.error('請求錯誤:', error.response.status, error.response.data);
       
-      const isLoginRequest = error.config.url.includes('/auth/login');
-      const isLoginPage = window.location.pathname === '/login';
-      
-      // 如果是登入請求，直接返回錯誤，不執行任何重定向
-      if (isLoginRequest) {
-        return Promise.reject(error);
-      }
-      
-      // 對於其他 401 錯誤（非登入請求），執行登出操作
-      if (error.response.status === 401 && !isLoginPage) {
+      // 只有非登入請求遇到 401 錯誤時才自動跳轉到登入頁面
+      const isLoginRequest = error.config?.url?.includes('/auth/login') || false;
+      if (!isLoginRequest && error.response?.status === 401) {
+        console.log('非登入請求發生401錯誤，執行跳轉');
         localStorage.removeItem('token');
         delete api.defaults.headers.common['Authorization'];
-        
-        // 如果已經在登入頁面，不需要重定向
-        if (!isLoginPage) {
-          window.location.href = '/login';
-        }
+        window.location.href = '/login';
       }
     } else if (error.request) {
       console.error('請求未收到響應:', error.request);
@@ -65,4 +68,4 @@ api.interceptors.response.use(
   }
 );
 
-export default api; 
+export default api;

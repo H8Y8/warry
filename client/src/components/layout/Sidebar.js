@@ -1,128 +1,220 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { 
+  faTimes, faLaptop, faHome, faBell, faCalendarAlt,
+  faRobot, faChartLine, faCog, faQuestionCircle, faSignOutAlt
+} from '@fortawesome/free-solid-svg-icons';
 
-const Sidebar = ({ isOpen, onClose, menuItems, onLogout }) => {
+const Sidebar = ({ isOpen, onClose, user, onLogout }) => {
   const location = useLocation();
+
+  // 監控 Sidebar 的 props 變化
+  useEffect(() => {
+    console.log('Sidebar props changed:', { isOpen });
+  }, [isOpen]);
+
+  const renderContent = (isMobile = false) => (
+    <div className="flex flex-col h-full">
+      {/* Logo 區域 */}
+      <div className="p-4 border-b border-gray-100">
+        <div className="flex items-center space-x-2">
+          <FontAwesomeIcon icon={faLaptop} className="h-6 w-6 text-primary-600" />
+          <h1 className="text-xl font-bold text-gray-900">WARRY</h1>
+        </div>
+        <p className="text-xs text-gray-500 mt-1">產品保固管理系統</p>
+      </div>
+
+      {/* 導航連結 */}
+      <nav className="flex-1 overflow-y-auto p-4">
+        <div className="space-y-1">
+          <Link
+            to="/dashboard"
+            onClick={isMobile ? onClose : undefined}
+            className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
+              location.pathname === '/dashboard'
+                ? 'bg-primary-50 text-primary-700'
+                : 'text-gray-700 hover:bg-gray-50 hover:text-primary-700'
+            }`}
+          >
+            <FontAwesomeIcon
+              icon={faHome}
+              className={`h-5 w-5 mr-3 ${
+                location.pathname === '/dashboard' ? 'text-primary-500' : 'text-gray-400'
+              }`}
+            />
+            <span>首頁</span>
+          </Link>
+          <Link
+            to="/products"
+            onClick={isMobile ? onClose : undefined}
+            className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
+              location.pathname.startsWith('/products')
+                ? 'bg-primary-50 text-primary-700'
+                : 'text-gray-700 hover:bg-gray-50 hover:text-primary-700'
+            }`}
+          >
+            <FontAwesomeIcon
+              icon={faLaptop}
+              className={`h-5 w-5 mr-3 ${
+                location.pathname.startsWith('/products') ? 'text-primary-500' : 'text-gray-400'
+              }`}
+            />
+            <span>產品管理</span>
+          </Link>
+          <Link
+            to="/warranty-alerts"
+            onClick={isMobile ? onClose : undefined}
+            className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
+              location.pathname === '/warranty-alerts'
+                ? 'bg-primary-50 text-primary-700'
+                : 'text-gray-700 hover:bg-gray-50 hover:text-primary-700'
+            }`}
+          >
+            <FontAwesomeIcon
+              icon={faBell}
+              className={`h-5 w-5 mr-3 ${
+                location.pathname === '/warranty-alerts' ? 'text-primary-500' : 'text-gray-400'
+              }`}
+            />
+            <span>保固提醒</span>
+          </Link>
+          <Link
+            to="/calendar"
+            onClick={isMobile ? onClose : undefined}
+            className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
+              location.pathname === '/calendar'
+                ? 'bg-primary-50 text-primary-700'
+                : 'text-gray-700 hover:bg-gray-50 hover:text-primary-700'
+            }`}
+          >
+            <FontAwesomeIcon
+              icon={faCalendarAlt}
+              className={`h-5 w-5 mr-3 ${
+                location.pathname === '/calendar' ? 'text-primary-500' : 'text-gray-400'
+              }`}
+            />
+            <span>保固日曆</span>
+          </Link>
+          <Link
+            to="/ai-analysis"
+            onClick={isMobile ? onClose : undefined}
+            className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
+              location.pathname === '/ai-analysis'
+                ? 'bg-primary-50 text-primary-700'
+                : 'text-gray-700 hover:bg-gray-50 hover:text-primary-700'
+            }`}
+          >
+            <FontAwesomeIcon
+              icon={faRobot}
+              className={`h-5 w-5 mr-3 ${
+                location.pathname === '/ai-analysis' ? 'text-primary-500' : 'text-gray-400'
+              }`}
+            />
+            <span>AI產品分析</span>
+          </Link>
+          <Link
+            to="/analytics"
+            onClick={isMobile ? onClose : undefined}
+            className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
+              location.pathname === '/analytics'
+                ? 'bg-primary-50 text-primary-700'
+                : 'text-gray-700 hover:bg-gray-50 hover:text-primary-700'
+            }`}
+          >
+            <FontAwesomeIcon
+              icon={faChartLine}
+              className={`h-5 w-5 mr-3 ${
+                location.pathname === '/analytics' ? 'text-primary-500' : 'text-gray-400'
+              }`}
+            />
+            <span>統計分析</span>
+          </Link>
+        </div>
+
+        <div className="mt-6 pt-6 border-t border-gray-100">
+          <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            支援
+          </h3>
+          <div className="mt-2 space-y-1">
+            <Link
+              to="/profile"
+              onClick={isMobile ? onClose : undefined}
+              className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
+                location.pathname === '/profile'
+                  ? 'bg-primary-50 text-primary-700'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-primary-700'
+              }`}
+            >
+              <FontAwesomeIcon
+                icon={faCog}
+                className={`h-5 w-5 mr-3 ${
+                  location.pathname === '/profile' ? 'text-primary-500' : 'text-gray-400'
+                }`}
+              />
+              <span>設定</span>
+            </Link>
+            <Link
+              to="/help"
+              onClick={isMobile ? onClose : undefined}
+              className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
+                location.pathname === '/help'
+                  ? 'bg-primary-50 text-primary-700'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-primary-700'
+              }`}
+            >
+              <FontAwesomeIcon
+                icon={faQuestionCircle}
+                className={`h-5 w-5 mr-3 ${
+                  location.pathname === '/help' ? 'text-primary-500' : 'text-gray-400'
+                }`}
+              />
+              <span>幫助中心</span>
+            </Link>
+            <button
+              onClick={() => {
+                onLogout();
+                if (isMobile) onClose();
+              }}
+              className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-50 hover:text-red-700"
+            >
+              <FontAwesomeIcon
+                icon={faSignOutAlt}
+                className="h-5 w-5 mr-3 text-gray-400"
+              />
+              <span>登出</span>
+            </button>
+          </div>
+        </div>
+      </nav>
+    </div>
+  );
 
   return (
     <>
-      {/* 桌面側邊欄 */}
-      <div className="hidden md:flex md:flex-shrink-0">
-        <div className="flex flex-col w-full sm:w-56 md:w-64 bg-white border-r border-gray-200">
-          <div className="flex flex-col h-0 flex-1">
-            <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-              <div className="flex items-center justify-center flex-shrink-0 px-2 mb-5">
-                <h1 className="text-base sm:text-lg md:text-xl font-bold text-primary-600 text-center">電子產品保固記錄</h1>
-              </div>
-              <nav className="mt-3 flex-1 px-1 sm:px-2 space-y-0.5 sm:space-y-1">
-                {menuItems.map((item) => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`group flex items-center px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md ${
-                      location.pathname === item.path
-                        ? 'bg-primary-50 text-primary-600'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                  >
-                    <FontAwesomeIcon
-                      icon={item.icon}
-                      className={`mr-2 flex-shrink-0 h-4 w-4 sm:h-5 sm:w-5 ${
-                        location.pathname === item.path
-                          ? 'text-primary-500'
-                          : 'text-gray-400 group-hover:text-gray-500'
-                      }`}
-                    />
-                    <span className="truncate">{item.label}</span>
-                  </Link>
-                ))}
-              </nav>
-            </div>
-            <div className="flex-shrink-0 flex border-t border-gray-200 p-2 sm:p-4">
-              <button
-                onClick={onLogout}
-                className="flex-shrink-0 w-full group flex items-center px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
-              >
-                <FontAwesomeIcon
-                  icon={faSignOutAlt}
-                  className="mr-2 flex-shrink-0 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 group-hover:text-gray-500"
-                />
-                登出
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* 側邊欄 */}
+      <div
+        className={`fixed inset-y-0 left-0 z-40 w-64 transition-transform duration-300 ease-in-out transform ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        } 2xl:translate-x-0 bg-white border-r border-gray-200 shadow-lg`}
+      >
+        {renderContent(true)}
       </div>
 
-      {/* 手機側邊欄 */}
+      {/* 背景遮罩 */}
       {isOpen && (
-        <div className="md:hidden fixed inset-0 flex z-40">
-          {/* 背景遮罩 */}
-          <div
-            className="fixed inset-0 bg-gray-600 bg-opacity-75"
-            onClick={onClose}
-          ></div>
-
-          {/* 側邊欄面板 */}
-          <div className="relative flex-1 flex flex-col max-w-xs w-full pt-5 pb-4 bg-white">
-            <div className="absolute top-0 right-0 -mr-12 pt-2">
-              <button
-                className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-                onClick={onClose}
-              >
-                <span className="sr-only">關閉側邊欄</span>
-                <FontAwesomeIcon icon={faTimes} className="h-6 w-6 text-white" />
-              </button>
-            </div>
-
-            <div className="flex items-center justify-center flex-shrink-0 px-4 mb-5">
-              <h1 className="text-xl font-bold text-primary-600">電子產品保固記錄</h1>
-            </div>
-
-            <div className="mt-5 flex-1 h-0 overflow-y-auto">
-              <nav className="px-2 space-y-1">
-                {menuItems.map((item) => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`group flex items-center px-4 py-2 text-base font-medium rounded-md ${
-                      location.pathname === item.path
-                        ? 'bg-primary-50 text-primary-600'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                    onClick={onClose}
-                  >
-                    <FontAwesomeIcon
-                      icon={item.icon}
-                      className={`mr-4 flex-shrink-0 h-5 w-5 ${
-                        location.pathname === item.path
-                          ? 'text-primary-500'
-                          : 'text-gray-400 group-hover:text-gray-500'
-                      }`}
-                    />
-                    {item.label}
-                  </Link>
-                ))}
-              </nav>
-            </div>
-
-            <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
-              <button
-                onClick={() => {
-                  onLogout();
-                  onClose();
-                }}
-                className="flex-shrink-0 w-full group flex items-center px-4 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
-              >
-                <FontAwesomeIcon
-                  icon={faSignOutAlt}
-                  className="mr-4 flex-shrink-0 h-5 w-5 text-gray-400 group-hover:text-gray-500"
-                />
-                登出
-              </button>
-            </div>
+        <div
+          className="fixed inset-0 z-30 bg-gray-600 bg-opacity-75 backdrop-blur-sm 2xl:hidden"
+          onClick={onClose}
+        >
+          <div className="absolute top-0 right-0 pt-4 pr-4">
+            <button
+              className="flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-white"
+              onClick={onClose}
+            >
+              <span className="sr-only">關閉選單</span>
+              <FontAwesomeIcon icon={faTimes} className="h-6 w-6 text-white" />
+            </button>
           </div>
         </div>
       )}
@@ -130,4 +222,4 @@ const Sidebar = ({ isOpen, onClose, menuItems, onLogout }) => {
   );
 };
 
-export default Sidebar; 
+export default Sidebar;
