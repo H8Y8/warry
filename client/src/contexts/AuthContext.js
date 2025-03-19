@@ -34,10 +34,11 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
+      console.log('[AuthContext] 登入請求參數:', { email, password: '***' });
       const { data: responseData } = await api.post('/api/auth/login', { email, password });
       
       if (!responseData.success) {
-        console.log('[驗證測試] 登入失敗:', responseData);
+        console.log('[AuthContext] 登入失敗（伺服器響應）:', responseData);
         return responseData; // 直接返回伺服器的響應，包含 success, type, message
       }
 
@@ -50,8 +51,14 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       // 檢查是否為自定義錯誤（後端返回的錯誤）
       if (error.isCustomError) {
-        console.error('[驗證測試] 網路請求錯誤:', error);
-        // 保留原始錯誤類型，不轉換為網絡錯誤
+        //console.error('[驗證測試] 授權錯誤:', error);
+        console.log('[AuthContext] 捕獲到自定義錯誤:', {
+          isCustomError: error.isCustomError,
+          type: error.type,
+          message: error.message,
+          stack: error.stack
+        });
+        // 重要：直接返回原始錯誤物件，保留所有欄位
         return {
           success: false,
           type: error.type,
@@ -59,7 +66,7 @@ export const AuthProvider = ({ children }) => {
         };
       } else {
         // 處理真正的網絡錯誤
-        console.error('[驗證測試] 網路連線錯誤:', error);
+        console.error('[AuthContext] 網路連線錯誤:', error);
         const networkError = {
           success: false,
           type: 'network',

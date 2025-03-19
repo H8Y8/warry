@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useReducer } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faLock, faEye, faEyeSlash, faShieldAlt } from '@fortawesome/free-solid-svg-icons';
@@ -7,12 +7,31 @@ import Button from '../../components/ui/Button';
 import Alert from '../../components/ui/Alert';
 import { useAuth } from '../../contexts/AuthContext';
 
+// 定義錯誤狀態reducer
+const errorReducer = (state, action) => {
+  switch (action.type) {
+    case 'SET_PASSWORD_ERROR':
+      return { ...state, password: action.payload };
+    case 'SET_EMAIL_ERROR':
+      return { ...state, email: action.payload };
+    case 'CLEAR_ERROR':
+      const newState = { ...state };
+      delete newState[action.field];
+      return newState;
+    case 'CLEAR_ALL':
+      return {};
+    default:
+      return state;
+  }
+};
+
 const Login = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
-  const [errors, setErrors] = useState({});
+  
+  const [errors, dispatchError] = useReducer(errorReducer, {});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginError, setLoginError] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -21,58 +40,71 @@ const Login = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    if (errors[name]) setErrors({ ...errors, [name]: null });
-    if (loginError) setLoginError(null);
+    
+    if (errors[name]) {
+      dispatchError({ type: 'CLEAR_ERROR', field: name });
+    }
+    
+    if (loginError) {
+      setLoginError(null);
+    }
   };
 
   const validateForm = () => {
-    const newErrors = {};
+    let hasError = false;
+    
     if (!formData.email) {
-      newErrors.email = '請輸入電子郵件';
+      dispatchError({ type: 'SET_EMAIL_ERROR', payload: '請輸入電子郵件' });
+      hasError = true;
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = '請輸入有效的電子郵件地址';
+      dispatchError({ type: 'SET_EMAIL_ERROR', payload: '請輸入有效的電子郵件地址' });
+      hasError = true;
     }
+    
     if (!formData.password) {
-      newErrors.password = '請輸入密碼';
+      dispatchError({ type: 'SET_PASSWORD_ERROR', payload: '請輸入密碼' });
+      hasError = true;
     } else if (formData.password.length < 6) {
-      newErrors.password = '密碼長度至少需要6個字符';
+      dispatchError({ type: 'SET_PASSWORD_ERROR', payload: '密碼長度至少需要6個字符' });
+      hasError = true;
     }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    
+    return !hasError;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
     
-    setIsSubmitting(true);
-    setLoginError(null);
-    setErrors({});
-
-    const response = await login(formData.email, formData.password);
-    console.log('[Login] 登入結果:', response);
-    
-    if (!response.success) {
-      const { type, message } = response;
-      
-      // 根據伺服器返回的錯誤類型顯示對應的錯誤信息
-      switch (type) {
-        case 'password':
-          setErrors(prev => ({ ...prev, password: message }));
-          setFormData(prev => ({ ...prev, password: '' }));
-          break;
-        case 'email':
-          setErrors(prev => ({ ...prev, email: message }));
-          break;
-        case 'network':
-          setLoginError(message);
-          break;
-        default:
-          setLoginError(message || '登入失敗，請稍後再試');
-      }
+    if (!validateForm()) {
+      return;
     }
     
-    setIsSubmitting(false);
+    setIsSubmitting(true);
+
+    try {
+      const response = await login(formData.email, formData.password);
+      
+      if (!response.success) {
+        const { type, message } = response;
+        
+        switch (type) {
+          case 'password':
+            dispatchError({ type: 'SET_PASSWORD_ERROR', payload: message });
+            setLoginError(message);
+            break;
+          case 'email':
+            dispatchError({ type: 'SET_EMAIL_ERROR', payload: message });
+            setLoginError(message);
+            break;
+          default:
+            setLoginError(message || '登入失敗，請稍後再試');
+        }
+      }
+    } catch (error) {
+      setLoginError(error.response?.data?.message || '登入失敗，請稍後再試');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -96,12 +128,12 @@ const Login = () => {
           <p className="text-sm text-gray-600">請登入您的帳戶以繼續</p>
         </div>
 
-        {/* 錯誤提示區域 - 全局錯誤 */}
+        {/* 錯誤提示區域 */}
         {loginError && (
           <Alert 
             variant="error" 
             title="登入失敗" 
-            className="mb-2 border-2 border-red-400 animate-pulse"
+            className="mb-2"
             dismissible
             onDismiss={() => setLoginError(null)}
           >
@@ -148,6 +180,25 @@ const Login = () => {
             >
               <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
             </button>
+          </div>
+
+          {/* 顯示原始錯誤狀態，用於檢查 - 增強可見性 */}
+          <div className="text-xs text-red-500 bg-red-50 rounded-md p-1 mt-1">
+            {errors.password && (
+              <div className="flex items-center">
+                <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1"></span>
+                <span>密碼錯誤: {errors.password}</span>
+              </div>
+            )}
+            {errors.email && (
+              <div className="flex items-center">
+                <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1"></span>
+                <span>郵箱錯誤: {errors.email}</span>
+              </div>
+            )}
+            {!errors.password && !errors.email && (
+              <div className="text-gray-400 italic">無錯誤</div>
+            )}
           </div>
 
           <div className="flex items-center justify-between">

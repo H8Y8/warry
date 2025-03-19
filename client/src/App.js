@@ -19,6 +19,7 @@ import AddProduct from './pages/Products/AddProduct';
 import EditProduct from './pages/Products/EditProduct';
 import Profile from './pages/Profile/Profile';
 import WarrantyAlerts from './pages/Warranty/WarrantyAlerts';
+import WarrantyCalendar from './pages/Calendar/WarrantyCalendar';
 import AIAnalysis from './pages/AIAnalysis/AIAnalysis';
 import NotFound from './pages/NotFound';
 import Help from './pages/Help/Help';
@@ -102,6 +103,7 @@ function App() {
         <Route path="/products/edit/:id" element={<EditProduct />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/warranty-alerts" element={<WarrantyAlerts />} />
+        <Route path="/calendar" element={<WarrantyCalendar />} />
         <Route path="/ai-analysis" element={<AIAnalysis />} />
         <Route path="/help" element={<Help />} />
       </Route>
