@@ -161,6 +161,19 @@ const Login = () => {
           <p className="text-sm text-gray-600">請登入您的帳戶以繼續</p>
         </div>
 
+        {/* 一般錯誤提示區域 */}
+        {loginError && (
+          <Alert 
+            variant="error" 
+            title="登入失敗" 
+            className="mb-2"
+            dismissible
+            onDismiss={() => setLoginError(null)}
+          >
+            <div className="font-medium">{loginError}</div>
+          </Alert>
+        )}
+        
         <form className="space-y-2 flex-1" onSubmit={handleSubmit} noValidate>
           <Input
             id="email"
@@ -200,6 +213,34 @@ const Login = () => {
             >
               <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
             </button>
+          </div>
+
+          {/* 表單錯誤訊息顯示區域 */}
+          <div className={`text-xs rounded-md p-2 mt-2 transition-all duration-200 ${
+            errors.password || errors.email 
+              ? 'text-red-500 bg-red-50 border border-red-200' 
+              : 'text-gray-400 bg-gray-50'
+          }`}>
+            {errors.password && (
+              <div className="flex items-center mb-1 p-1 bg-red-100 rounded">
+                <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></span>
+                <span className="font-medium">密碼錯誤: </span>
+                <span className="ml-1 text-red-700">{errors.password}</span>
+              </div>
+            )}
+            {errors.email && (
+              <div className="flex items-center mb-1 p-1 bg-red-100 rounded">
+                <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></span>
+                <span className="font-medium">郵箱錯誤: </span>
+                <span className="ml-1 text-red-700">{errors.email}</span>
+              </div>
+            )}
+            {!errors.password && !errors.email && !loginError && (
+              <div className="text-gray-500 text-center py-1">
+                <span className="inline-block mr-1">👋</span>
+                請輸入您的登入資訊
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-between">
