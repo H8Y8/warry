@@ -13,6 +13,8 @@ const api = axios.create({
 api.interceptors.request.use(
   config => {
     console.log('發送請求:', `${config.method.toUpperCase()} ${config.url}`);
+    
+    // 不再自動設置 limit 參數，讓各個組件自行控制分頁
     return config;
   },
   error => {

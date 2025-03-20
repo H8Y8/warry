@@ -38,10 +38,40 @@ exports.getProducts = async (req, res, next) => {
     }
     
     // 保固狀態過濾
-    if (req.query.warranty === 'active') {
-      query.warrantyEndDate = { $gt: new Date() };
-    } else if (req.query.warranty === 'expired') {
-      query.warrantyEndDate = { $lte: new Date() };
+    if (req.query.warranty) {
+      // 設定今天凌晨00:00:00
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // 設定30天後的23:59:59
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(today.getDate() + 30);
+      thirtyDaysFromNow.setHours(23, 59, 59, 999);
+
+      console.log('Date values:', {
+        today: today,
+        thirtyDaysFromNow: thirtyDaysFromNow,
+        todayISO: today.toISOString(),
+        thirtyDaysISO: thirtyDaysFromNow.toISOString()
+      });
+
+      if (req.query.warranty === 'active') {
+        query.warrantyEndDate = { $gt: thirtyDaysFromNow };
+      } else if (req.query.warranty === 'expiring') {
+        query.warrantyEndDate = {
+          $gte: today,
+          $lte: thirtyDaysFromNow
+        };
+      } else if (req.query.warranty === 'expired') {
+        query.warrantyEndDate = { $lt: today };
+      }
+
+      console.log('Warranty filter:', {
+        warrantyType: req.query.warranty,
+        query: JSON.stringify(query.warrantyEndDate),
+        today: today.toISOString(),
+        thirtyDaysFromNow: thirtyDaysFromNow.toISOString()
+      });
     }
     
     // 排序
@@ -60,35 +90,42 @@ exports.getProducts = async (req, res, next) => {
       sort = { createdAt: -1 };
     }
     
-    // 分頁
+    console.log('查詢條件:', JSON.stringify(query, null, 2));
+    console.log('排序條件:', JSON.stringify(sort, null, 2));
+
+    // 分頁設置
     const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 10;
+    const limit = parseInt(req.query.limit, 10) || 100; // 預設每頁100個產品
     const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
+
+    // 計算總數
     const total = await Product.countDocuments(query);
-    
+
     // 執行查詢
     const products = await Product.find(query)
+      .collation({ locale: 'zh' })
       .sort(sort)
+      .select('-__v')
       .skip(startIndex)
-      .limit(limit);
-    
-    // 分頁結果
-    const pagination = {};
-    
-    if (endIndex < total) {
-      pagination.next = {
-        page: page + 1,
-        limit
-      };
+      .limit(limit)
+      .lean();
+
+    // 構建分頁信息
+    const pagination = {
+      total,
+      pages: Math.ceil(total / limit),
+      page,
+      limit
+    };
+
+    if (page > 1) {
+      pagination.prev = page - 1;
     }
-    
-    if (startIndex > 0) {
-      pagination.prev = {
-        page: page - 1,
-        limit
-      };
+    if (startIndex + products.length < total) {
+      pagination.next = page + 1;
     }
+
+    console.log(`找到 ${products.length} 個產品，總共 ${total} 個`);
     
     res.status(200).json({
       success: true,
@@ -475,8 +512,16 @@ exports.deleteProductFile = async (req, res, next) => {
 exports.getProductStats = async (req, res, next) => {
   try {
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
     const thirtyDaysFromNow = new Date();
     thirtyDaysFromNow.setDate(today.getDate() + 30);
+    thirtyDaysFromNow.setHours(23, 59, 59, 999);
+
+    console.log('Stats calculation dates:', {
+      today: today.toISOString(),
+      thirtyDaysFromNow: thirtyDaysFromNow.toISOString()
+    });
 
     // 獲取總產品數量
     const totalProducts = await Product.countDocuments({ userId: req.user.id });
@@ -485,7 +530,7 @@ exports.getProductStats = async (req, res, next) => {
     const expiringProducts = await Product.countDocuments({
       userId: req.user.id,
       warrantyEndDate: {
-        $gt: today,
+        $gte: today,
         $lte: thirtyDaysFromNow
       }
     });
@@ -493,7 +538,13 @@ exports.getProductStats = async (req, res, next) => {
     // 獲取已過期的產品數量
     const expiredProducts = await Product.countDocuments({
       userId: req.user.id,
-      warrantyEndDate: { $lte: today }
+      warrantyEndDate: { $lt: today }
+    });
+
+    console.log('Stats results:', {
+      totalProducts,
+      expiringProducts,
+      expiredProducts
     });
 
     res.status(200).json({
@@ -521,10 +572,20 @@ exports.getWarrantyAlerts = async (req, res, next) => {
     
     // 計算每個產品的保固狀態
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     const alerts = products.map(product => {
       const endDate = new Date(product.warrantyEndDate);
+      endDate.setHours(23, 59, 59, 999);
+      
       const diffTime = endDate - today;
       const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      console.log(`Product ${product.name} warranty calculation:`, {
+        endDate: endDate.toISOString(),
+        today: today.toISOString(),
+        daysLeft: daysLeft
+      });
       
       // 確定狀態
       let status;
@@ -558,4 +619,4 @@ exports.getWarrantyAlerts = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-}; 
+};
