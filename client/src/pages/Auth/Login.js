@@ -37,7 +37,15 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginError, setLoginError] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
-  const { login, error: authError } = useAuth();
+  const { login, error: authError, user } = useAuth();
+  const navigate = useNavigate();
+
+  // 監聽用戶狀態變化
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
 
   // 監聽 authError 的變化
   useEffect(() => {
@@ -89,9 +97,6 @@ const Login = () => {
     return !hasError;
   };
 
-  const navigate = useNavigate();
-
-  // 防抖提交處理
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm() || isSubmitting) return;
@@ -113,24 +118,21 @@ const Login = () => {
         timestamp: new Date().toISOString()
       });
       
-      if (response.success) {
-        navigate('/dashboard');
-        return;
-      }
-      
-      // 處理錯誤情況
-      const { type, message } = response;
-      console.log('[Login] Handling error:', { type, message });
-      
-      switch (type) {
-        case 'password':
-          dispatchError({ type: 'SET_PASSWORD_ERROR', payload: message });
-          break;
-        case 'email':
-          dispatchError({ type: 'SET_EMAIL_ERROR', payload: message });
-          break;
-        default:
-          setLoginError(message || '登入失敗，請稍後再試');
+      if (!response.success) {
+        // 處理錯誤情況
+        const { type, message } = response;
+        console.log('[Login] Handling error:', { type, message });
+        
+        switch (type) {
+          case 'password':
+            dispatchError({ type: 'SET_PASSWORD_ERROR', payload: message });
+            break;
+          case 'email':
+            dispatchError({ type: 'SET_EMAIL_ERROR', payload: message });
+            break;
+          default:
+            setLoginError(message || '登入失敗，請稍後再試');
+        }
       }
     } catch (error) {
       console.error('[Login] Unexpected error:', error);

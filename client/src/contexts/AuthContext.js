@@ -44,11 +44,18 @@ export const AuthProvider = ({ children }) => {
         timestamp: new Date().toISOString()
       });
       
-      if (data.success) {
-        const { token, user } = data;
-        localStorage.setItem('token', token);
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        setUser(user);
+      if (data.success && data.token) {
+        localStorage.setItem('token', data.token);
+        api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+        
+        if (data.user) {
+          setUser(data.user);
+        } else {
+          // 如果響應中沒有用戶數據，立即獲取用戶信息
+          const userResponse = await api.get('/api/auth/me');
+          setUser(userResponse.data.data);
+        }
+        
         console.log('[Auth] Login successful, user state updated');
         return data;
       }
