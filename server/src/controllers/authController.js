@@ -70,7 +70,7 @@ exports.login = async (req, res) => {
       return res.status(200).json({
         success: false,
         type: 'email',
-        message: '找不到此電子郵件帳號'
+        message: '電子郵件地址或密碼不正確。'
       });
     }
     
@@ -81,7 +81,7 @@ exports.login = async (req, res) => {
       return res.status(200).json({
         success: false,
         type: 'password',
-        message: '密碼錯誤'
+        message: '電子郵件地址或密碼不正確。'
       });
     }
     
