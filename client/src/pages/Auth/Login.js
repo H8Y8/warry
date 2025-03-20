@@ -1,5 +1,5 @@
-import React, { useState, useReducer } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useReducer, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faLock, faEye, faEyeSlash, faShieldAlt } from '@fortawesome/free-solid-svg-icons';
 import Input from '../../components/ui/Input';
@@ -7,8 +7,10 @@ import Button from '../../components/ui/Button';
 import Alert from '../../components/ui/Alert';
 import { useAuth } from '../../contexts/AuthContext';
 
+
 // 定義錯誤狀態reducer
 const errorReducer = (state, action) => {
+  console.log('dispatchError called with action:', action);
   switch (action.type) {
     case 'SET_PASSWORD_ERROR':
       return { ...state, password: action.payload };
@@ -35,7 +37,22 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginError, setLoginError] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
-  const { login } = useAuth();
+  const { login, error: authError } = useAuth();
+
+  // 監聽 authError 的變化
+  useEffect(() => {
+    if (authError) {
+      setLoginError(authError);
+    }
+  }, [authError]);
+
+  // 檢查組件是否被掛載或重掛載
+  useEffect(() => {
+    console.log('Login component mounted');
+    return () => {
+      console.log('Login component unmounted');
+    };
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -72,36 +89,52 @@ const Login = () => {
     return !hasError;
   };
 
+  const navigate = useNavigate();
+
+  // 防抖提交處理
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm() || isSubmitting) return;
     
-    if (!validateForm()) {
-      return;
-    }
+    console.log('[Login] Submit attempt:', {
+      email: formData.email,
+      timestamp: new Date().toISOString()
+    });
     
     setIsSubmitting(true);
-
+    setLoginError(null);
+    dispatchError({ type: 'CLEAR_ALL' });
+  
     try {
       const response = await login(formData.email, formData.password);
+      console.log('[Login] Submit response:', {
+        success: response.success,
+        type: response.type,
+        timestamp: new Date().toISOString()
+      });
       
-      if (!response.success) {
-        const { type, message } = response;
-        
-        switch (type) {
-          case 'password':
-            dispatchError({ type: 'SET_PASSWORD_ERROR', payload: message });
-            setLoginError(message);
-            break;
-          case 'email':
-            dispatchError({ type: 'SET_EMAIL_ERROR', payload: message });
-            setLoginError(message);
-            break;
-          default:
-            setLoginError(message || '登入失敗，請稍後再試');
-        }
+      if (response.success) {
+        navigate('/dashboard');
+        return;
+      }
+      
+      // 處理錯誤情況
+      const { type, message } = response;
+      console.log('[Login] Handling error:', { type, message });
+      
+      switch (type) {
+        case 'password':
+          dispatchError({ type: 'SET_PASSWORD_ERROR', payload: message });
+          break;
+        case 'email':
+          dispatchError({ type: 'SET_EMAIL_ERROR', payload: message });
+          break;
+        default:
+          setLoginError(message || '登入失敗，請稍後再試');
       }
     } catch (error) {
-      setLoginError(error.response?.data?.message || '登入失敗，請稍後再試');
+      console.error('[Login] Unexpected error:', error);
+      setLoginError('發生未預期的錯誤，請稍後再試');
     } finally {
       setIsSubmitting(false);
     }
@@ -128,7 +161,7 @@ const Login = () => {
           <p className="text-sm text-gray-600">請登入您的帳戶以繼續</p>
         </div>
 
-        {/* 錯誤提示區域 */}
+        {/* 一般錯誤提示區域 */}
         {loginError && (
           <Alert 
             variant="error" 
@@ -182,22 +215,31 @@ const Login = () => {
             </button>
           </div>
 
-          {/* 顯示原始錯誤狀態，用於檢查 - 增強可見性 */}
-          <div className="text-xs text-red-500 bg-red-50 rounded-md p-1 mt-1">
+          {/* 表單錯誤訊息顯示區域 */}
+          <div className={`text-xs rounded-md p-2 mt-2 transition-all duration-200 ${
+            errors.password || errors.email 
+              ? 'text-red-500 bg-red-50 border border-red-200' 
+              : 'text-gray-400 bg-gray-50'
+          }`}>
             {errors.password && (
-              <div className="flex items-center">
-                <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1"></span>
-                <span>密碼錯誤: {errors.password}</span>
+              <div className="flex items-center mb-1 p-1 bg-red-100 rounded">
+                <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></span>
+                <span className="font-medium">密碼錯誤: </span>
+                <span className="ml-1 text-red-700">{errors.password}</span>
               </div>
             )}
             {errors.email && (
-              <div className="flex items-center">
-                <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1"></span>
-                <span>郵箱錯誤: {errors.email}</span>
+              <div className="flex items-center mb-1 p-1 bg-red-100 rounded">
+                <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></span>
+                <span className="font-medium">郵箱錯誤: </span>
+                <span className="ml-1 text-red-700">{errors.email}</span>
               </div>
             )}
-            {!errors.password && !errors.email && (
-              <div className="text-gray-400 italic">無錯誤</div>
+            {!errors.password && !errors.email && !loginError && (
+              <div className="text-gray-500 text-center py-1">
+                <span className="inline-block mr-1">👋</span>
+                請輸入您的登入資訊
+              </div>
             )}
           </div>
 

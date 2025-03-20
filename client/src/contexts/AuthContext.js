@@ -31,50 +31,48 @@ export const AuthProvider = ({ children }) => {
 
   // 登入
   const login = async (email, password) => {
+    console.log('[Auth] Login attempt:', { email, timestamp: new Date().toISOString() });
     setLoading(true);
     setError(null);
+    
     try {
-      console.log('[AuthContext] 登入請求參數:', { email, password: '***' });
-      const { data: responseData } = await api.post('/api/auth/login', { email, password });
+      const { data } = await api.post('/api/auth/login', { email, password });
+      console.log('[Auth] Login response:', { 
+        success: data.success, 
+        hasToken: !!data.token,
+        hasUser: !!data.user,
+        timestamp: new Date().toISOString()
+      });
       
-      if (!responseData.success) {
-        console.log('[AuthContext] 登入失敗（伺服器響應）:', responseData);
-        return responseData; // 直接返回伺服器的響應，包含 success, type, message
+      if (data.success) {
+        const { token, user } = data;
+        localStorage.setItem('token', token);
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        setUser(user);
+        console.log('[Auth] Login successful, user state updated');
+        return data;
       }
-
-      // 登入成功，設置 token
-      const { token } = responseData;
-      localStorage.setItem('token', token);
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      await checkAuthStatus();
-      return { success: true };
+      
+      // 非成功響應，設置錯誤狀態
+      console.log('[Auth] Login failed:', {
+        type: data.type,
+        message: data.message,
+        timestamp: new Date().toISOString()
+      });
+      setError(data.message || '登入失敗，請稍後再試');
+      return data;
     } catch (error) {
-      // 檢查是否為自定義錯誤（後端返回的錯誤）
-      if (error.isCustomError) {
-        //console.error('[驗證測試] 授權錯誤:', error);
-        console.log('[AuthContext] 捕獲到自定義錯誤:', {
-          isCustomError: error.isCustomError,
-          type: error.type,
-          message: error.message,
-          stack: error.stack
-        });
-        // 重要：直接返回原始錯誤物件，保留所有欄位
-        return {
-          success: false,
-          type: error.type,
-          message: error.message
-        };
-      } else {
-        // 處理真正的網絡錯誤
-        console.error('[AuthContext] 網路連線錯誤:', error);
-        const networkError = {
-          success: false,
-          type: 'network',
-          message: '網路連線異常，請檢查網路後重試'
-        };
-        setError(networkError.message);
-        return networkError;
-      }
+      console.error('[Auth] Login error:', {
+        message: error.message,
+        type: error.response?.status === 401 ? 'auth' : 'network',
+        timestamp: new Date().toISOString()
+      });
+      setError('網路連線異常，請稍後再試');
+      return {
+        success: false,
+        type: 'network',
+        message: '網路連線異常，請稍後再試'
+      };
     } finally {
       setLoading(false);
     }
