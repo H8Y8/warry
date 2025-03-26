@@ -311,7 +311,7 @@ const ProductDetail = () => {
                       `${process.env.REACT_APP_API_URL}/uploads/products/${product.images[0].split('/').pop()}`) : 
                     null}
                   alt={product?.name}
-                  className="object-cover w-full h-full"
+                  className="object-cover w-30 h-30"
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.svg`;

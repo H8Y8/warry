@@ -49,15 +49,21 @@ export const AuthProvider = ({ children }) => {
         api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
         
         if (data.user) {
-          setUser(data.user);
+          await new Promise(resolve => {
+            setUser(data.user);
+            setTimeout(resolve, 100); // 確保狀態更新完成
+          });
         } else {
           // 如果響應中沒有用戶數據，立即獲取用戶信息
           const userResponse = await api.get('/api/auth/me');
-          setUser(userResponse.data.data);
+          await new Promise(resolve => {
+            setUser(userResponse.data.data);
+            setTimeout(resolve, 100); // 確保狀態更新完成
+          });
         }
         
         console.log('[Auth] Login successful, user state updated');
-        return data;
+        return { ...data, success: true };
       }
       
       // 非成功響應，設置錯誤狀態

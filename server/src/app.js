@@ -8,16 +8,32 @@ const cors = require('cors');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const { errorHandler } = require('./middleware/error');
+const morgan = require('morgan');
+const apiRouter = require('./routes/api');
 
 // 創建Express應用
 const app = express();
 
 // 配置CORS
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: function(origin, callback) {
+    // 允許來自本地開發環境的請求
+    if (!origin || origin === 'http://localhost:3000') {
+      return callback(null, true);
+    }
+    
+    // 允許來自192.168.100.x網段的請求
+    if (/^http:\/\/192\.168\.100\.\d+(?::\d+)?$/.test(origin)) {
+      return callback(null, true);
+    }
+    
+    console.log('被拒絕的來源:', origin);
+    callback(new Error('不允許的來源'));
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Set-Cookie']
 }));
 
 // 解析JSON請求體
@@ -38,6 +54,7 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/products', require('./routes/products'));
 app.use('/api/reminders', require('./routes/reminders'));
 app.use('/api/ai', require('./routes/ai'));
+app.use('/api', apiRouter);
 
 // API根路由
 app.get('/api', (req, res) => {
@@ -58,4 +75,4 @@ app.use((req, res, next) => {
 // 錯誤處理中間件
 app.use(errorHandler);
 
-module.exports = app; 
+module.exports = app;

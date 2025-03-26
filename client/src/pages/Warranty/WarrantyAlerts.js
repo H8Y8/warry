@@ -420,6 +420,17 @@ const WarrantyAlerts = () => {
               全部
             </button>
             <button
+              onClick={() => setFilter('active')}
+              className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                filter === 'active'
+                ? 'bg-green-100 text-green-800 ring-2 ring-green-600 ring-offset-2'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <FontAwesomeIcon icon={faCheckCircle} className="mr-2" />
+              有效
+            </button>            
+            <button
               onClick={() => setFilter('upcoming')}
               className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                 filter === 'upcoming'
@@ -441,17 +452,7 @@ const WarrantyAlerts = () => {
               <FontAwesomeIcon icon={faExclamationTriangle} className="mr-2" />
               已過期
             </button>
-            <button
-              onClick={() => setFilter('active')}
-              className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                filter === 'active'
-                ? 'bg-green-100 text-green-800 ring-2 ring-green-600 ring-offset-2'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              <FontAwesomeIcon icon={faCheckCircle} className="mr-2" />
-              有效
-            </button>
+
           </div>
           <button
             onClick={fetchAlerts}

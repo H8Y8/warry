@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faTimes, faLaptop, faHome, faBell, faCalendarAlt,
+  faTimes, faLaptop, faHome, faBell,
   faRobot, faChartLine, faCog, faQuestionCircle, faSignOutAlt
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -78,23 +78,6 @@ const Sidebar = ({ isOpen, onClose, user, onLogout }) => {
               }`}
             />
             <span>保固提醒</span>
-          </Link>
-          <Link
-            to="/calendar"
-            onClick={isMobile ? onClose : undefined}
-            className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
-              location.pathname === '/calendar'
-                ? 'bg-primary-50 text-primary-700'
-                : 'text-gray-700 hover:bg-gray-50 hover:text-primary-700'
-            }`}
-          >
-            <FontAwesomeIcon
-              icon={faCalendarAlt}
-              className={`h-5 w-5 mr-3 ${
-                location.pathname === '/calendar' ? 'text-primary-500' : 'text-gray-400'
-              }`}
-            />
-            <span>保固日曆</span>
           </Link>
           <Link
             to="/ai-analysis"

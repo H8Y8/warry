@@ -526,7 +526,13 @@ exports.getProductStats = async (req, res, next) => {
     // 獲取總產品數量
     const totalProducts = await Product.countDocuments({ userId: req.user.id });
 
-    // 獲取即將到期的產品數量（30天內）
+    // 獲取已過期的產品數量
+    const expiredProducts = await Product.countDocuments({
+      userId: req.user.id,
+      warrantyEndDate: { $lt: today }
+    });
+
+    // 獲取即將到期的產品數量（30天內到期）
     const expiringProducts = await Product.countDocuments({
       userId: req.user.id,
       warrantyEndDate: {
@@ -535,24 +541,26 @@ exports.getProductStats = async (req, res, next) => {
       }
     });
 
-    // 獲取已過期的產品數量
-    const expiredProducts = await Product.countDocuments({
+    // 獲取有效保固的產品數量
+    const validProducts = await Product.countDocuments({
       userId: req.user.id,
-      warrantyEndDate: { $lt: today }
+      warrantyEndDate: { $gte: today }
     });
 
     console.log('Stats results:', {
       totalProducts,
-      expiringProducts,
-      expiredProducts
+      validProducts,
+      expiredProducts,
+      expiringProducts
     });
 
     res.status(200).json({
       success: true,
       data: {
         totalProducts,
-        expiringProducts,
-        expiredProducts
+        validProducts,
+        expiredProducts,
+        expiringProducts
       }
     });
   } catch (error) {

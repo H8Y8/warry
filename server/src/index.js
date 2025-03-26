@@ -22,8 +22,10 @@ connectDB();
 ensureUploadDirExists();
 
 // 啟動服務器
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`服務器運行在${process.env.NODE_ENV}模式下，端口: ${PORT}`);
+  console.log('允許所有IP連線');
+  console.log('已開放 VPN 網段 (192.168.100.0/24) 存取');
 });
 
 // 處理未捕獲的異常
@@ -42,4 +44,4 @@ process.on('unhandledRejection', (err) => {
   server.close(() => {
     process.exit(1);
   });
-}); 
+});

@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@google-cloud/vision": "^4.3.3",
-    "axios": "^1.8.2",
+    "axios": "^1.8.4",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.5.1",
     "cookie-parser": "^1.4.7",
@@ -29,6 +29,7 @@
     "express-validator": "^7.0.1",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.0.3",
+    "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.1",
     "sharp": "^0.33.5",
