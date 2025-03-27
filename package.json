@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@fortawesome/free-brands-svg-icons": "^6.7.2",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "html2canvas": "^1.4.1",
+    "react-share": "^5.2.2"
+  }
+}
