@@ -392,28 +392,32 @@ exports.uploadProductFile = async (req, res, next) => {
       return next(new ErrorResponse(`找不到ID為${req.params.id}的產品`, 404));
     }
     
-    if (!req.file) {
+    if (!req.files || req.files.length === 0) {
       return next(new ErrorResponse('請上傳文件', 400));
     }
     
     // 根據文件類型決定存儲路徑
-    let filePath;
-    if (req.file.fieldname === 'receipt') {
-      filePath = `/uploads/receipts/${req.file.filename}`;
-      if (!product.receipts) {
-        product.receipts = [filePath];
+    const filePaths = [];
+    for (const file of req.files) {
+      let filePath;
+      if (file.fieldname === 'receipt') {
+        filePath = `/uploads/receipts/${file.filename}`;
+        if (!product.receipts) {
+          product.receipts = [filePath];
+        } else {
+          product.receipts.push(filePath);
+        }
+      } else if (file.fieldname === 'warrantyDocument') {
+        filePath = `/uploads/warranties/${file.filename}`;
+        if (!product.warrantyDocuments) {
+          product.warrantyDocuments = [filePath];
+        } else {
+          product.warrantyDocuments.push(filePath);
+        }
       } else {
-        product.receipts.push(filePath);
+        return next(new ErrorResponse('無效的文件類型', 400));
       }
-    } else if (req.file.fieldname === 'warrantyDocument') {
-      filePath = `/uploads/warranties/${req.file.filename}`;
-      if (!product.warrantyDocuments) {
-        product.warrantyDocuments = [filePath];
-      } else {
-        product.warrantyDocuments.push(filePath);
-      }
-    } else {
-      return next(new ErrorResponse('無效的文件類型', 400));
+      filePaths.push(filePath);
     }
     
     await product.save();
@@ -421,7 +425,7 @@ exports.uploadProductFile = async (req, res, next) => {
     res.status(200).json({
       success: true,
       data: {
-        filePath,
+        filePaths,
         product
       }
     });

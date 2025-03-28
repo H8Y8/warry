@@ -217,8 +217,7 @@ const EditProduct = () => {
   }
 
   return (
-    <div>
-      {/* 標題導航 */}
+    <div className="px-4 sm:px-6 lg:px-8">
       <div className="mb-6 flex items-center">
         <Button
           to={`/products/${id}`}
@@ -232,179 +231,101 @@ const EditProduct = () => {
       </div>
 
       {error && (
-        <Alert
-          variant="error"
-          className="mb-6"
-          icon={faExclamationTriangle}
-        >
+        <Alert variant="error" className="mb-6" icon={faExclamationTriangle}>
           {error}
         </Alert>
       )}
 
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* 左側：產品圖片上傳 */}
-          <div className="lg:col-span-2">
-            <Card>
-              <h2 className="font-medium text-lg text-gray-900 mb-4">產品圖片</h2>
-              
-              {/* 圖片上傳區域 */}
-              <div className="mb-4">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {images.map((image, index) => (
-                    <div key={index} className="relative aspect-w-16 aspect-h-9">
-                      <img
-                        src={image.preview}
-                        alt={`產品圖片 ${index + 1}`}
-                        className="object-cover rounded-lg"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveImage(index)}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                      >
-                        <FontAwesomeIcon icon={faTimes} className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
-                  
-                  {images.length < 5 && (
-                    <div className="aspect-w-16 aspect-h-9">
-                      <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-500 hover:bg-primary-50">
-                        <FontAwesomeIcon icon={faImage} className="h-8 w-8 text-gray-400 mb-2" />
-                        <span className="text-sm text-gray-500">點擊上傳圖片</span>
-                        <input
-                          type="file"
-                          className="hidden"
-                          accept="image/*"
-                          multiple
-                          onChange={handleImageUpload}
-                        />
-                      </label>
-                    </div>
-                  )}
-                </div>
-                {imageError && (
-                  <p className="mt-2 text-sm text-red-600">{imageError}</p>
-                )}
-                <p className="mt-2 text-sm text-gray-500">
-                  最多可上傳5張圖片，每張大小不超過5MB
-                </p>
-              </div>
-            </Card>
-          </div>
-
-          {/* 右側：產品信息表單 */}
-          <div>
-            <Card>
-              <h2 className="font-medium text-lg text-gray-900 mb-4">產品信息</h2>
-              
-              <div className="space-y-4">
-                {/* 產品名稱 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    產品名稱 <span className="text-red-500">*</span>
-                  </label>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {/* 左側圖片上傳區塊 */}
+          <Card>
+            <h2 className="font-medium text-lg text-gray-900 mb-4">產品圖片</h2>
+            <div className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center relative overflow-hidden">
+              {images[0] ? (
+                <img src={images[0].preview} className="object-contain max-h-full max-w-full" />
+              ) : (
+                <label className="flex flex-col items-center text-gray-400 cursor-pointer">
+                  <FontAwesomeIcon icon={faImage} className="h-12 w-12 mb-2" />
+                  <span className="text-sm">點擊上傳圖片</span>
                   <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                    required
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageUpload}
                   />
-                </div>
+                </label>
+              )}
+            </div>
 
-                {/* 產品類型 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    產品類型 <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    name="type"
-                    value={formData.type}
-                    onChange={handleInputChange}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                    required
+            <div className="flex items-center space-x-3 mt-4">
+              {images.slice(1).map((image, index) => (
+                <div key={index} className="relative w-16 h-16 rounded overflow-hidden border">
+                  <img src={image.preview} className="object-cover w-full h-full" />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(index + 1)}
+                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1"
                   >
-                    <option value="">請選擇產品類型</option>
-                    {productTypes.map(type => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
+                    <FontAwesomeIcon icon={faTimes} className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+              {images.length < 5 && (
+                <label className="w-16 h-16 flex items-center justify-center border-2 border-dashed rounded cursor-pointer hover:border-primary-500">
+                  <FontAwesomeIcon icon={faUpload} className="text-gray-400" />
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageUpload}
+                  />
+                </label>
+              )}
+            </div>
+            <p className="mt-2 text-sm text-gray-500">最多可上傳5張圖片，每張大小不超過5MB</p>
+            {imageError && (
+              <p className="text-sm text-red-600 mt-1">{imageError}</p>
+            )}
+          </Card>
+
+          {/* 右側表單資訊 */}
+          <div className="flex flex-col gap-6">
+            <Card>
+              <h2 className="font-medium text-lg text-gray-900 mb-4">產品資訊</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">產品名稱 <span className="text-red-500">*</span></label>
+                  <input name="name" value={formData.name} onChange={handleInputChange} required className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">產品類型 <span className="text-red-500">*</span></label>
+                  <select name="type" value={formData.type} onChange={handleInputChange} required className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                    <option value="">請選擇</option>
+                    {productTypes.map((type) => (<option key={type} value={type}>{type}</option>))}
                   </select>
                 </div>
-
-                {/* 品牌 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    品牌 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="brand"
-                    value={formData.brand}
-                    onChange={handleInputChange}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                    required
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">品牌 <span className="text-red-500">*</span></label>
+                  <input name="brand" value={formData.brand} onChange={handleInputChange} required className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500" />
                 </div>
-
-                {/* 型號 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    型號 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="model"
-                    value={formData.model}
-                    onChange={handleInputChange}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                    required
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">型號 <span className="text-red-500">*</span></label>
+                  <input name="model" value={formData.model} onChange={handleInputChange} required className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500" />
                 </div>
-
-                {/* 序號 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    序號
-                  </label>
-                  <input
-                    type="text"
-                    name="serialNumber"
-                    value={formData.serialNumber}
-                    onChange={handleInputChange}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">序號</label>
+                  <input name="serialNumber" value={formData.serialNumber} onChange={handleInputChange} className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500" />
                 </div>
-
-                {/* 購買日期 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    購買日期 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    name="purchaseDate"
-                    value={formData.purchaseDate}
-                    onChange={handleInputChange}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                    required
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">購買日期 <span className="text-red-500">*</span></label>
+                  <input type="date" name="purchaseDate" value={formData.purchaseDate} onChange={handleInputChange} required className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500" />
                 </div>
-
-                {/* 保固期限 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    保固期限 <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    name="warrantyPeriod"
-                    value={formData.warrantyPeriod}
-                    onChange={handleInputChange}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                    required
-                  >
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">保固期限 <span className="text-red-500">*</span></label>
+                  <select name="warrantyPeriod" value={formData.warrantyPeriod} onChange={handleInputChange} required className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500">
                     <option value="12">1年</option>
                     <option value="24">2年</option>
                     <option value="36">3年</option>
@@ -415,64 +336,29 @@ const EditProduct = () => {
               </div>
             </Card>
 
-            {/* 產品描述 */}
-            <Card className="mt-6">
-              <h2 className="font-medium text-lg text-gray-900 mb-4">產品描述</h2>
-              
+            <Card>
+              <h2 className="font-medium text-lg text-gray-900 mb-4">其他資訊</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    描述
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    rows="3"
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                    placeholder="輸入產品描述..."
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">產品描述</label>
+                  <textarea name="description" value={formData.description} onChange={handleInputChange} rows={3} className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500" />
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    備註
-                  </label>
-                  <textarea
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleInputChange}
-                    rows="2"
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                    placeholder="添加備註..."
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">備註</label>
+                  <textarea name="notes" value={formData.notes} onChange={handleInputChange} rows={2} className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500" />
                 </div>
               </div>
             </Card>
           </div>
         </div>
 
-        {/* 提交按鈕 */}
         <div className="mt-6 flex justify-end space-x-3">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => navigate(`/products/${id}`)}
-          >
-            取消
-          </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            loading={loading}
-            disabled={loading}
-          >
-            保存更改
-          </Button>
+          <Button type="button" variant="secondary" onClick={() => navigate(`/products/${id}`)}>取消</Button>
+          <Button type="submit" variant="primary" loading={loading} disabled={loading}>保存更改</Button>
         </div>
       </form>
     </div>
   );
 };
 
-export default EditProduct; 
+export default EditProduct;

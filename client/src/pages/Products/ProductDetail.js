@@ -113,12 +113,17 @@ const ProductDetail = () => {
   };
 
   const handleFileUpload = async (event, type) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
+    const files = Array.from(event.target.files);
+    if (!files.length) return;
+
+    // 檢查文件大小
+    const oversizedFiles = files.filter(file => file.size > 5 * 1024 * 1024);
+    if (oversizedFiles.length > 0) {
       setUploadError('文件大小不能超過5MB');
       return;
     }
+
+    // 檢查文件類型
     const allowedTypes = [
       'image/jpeg',
       'image/png',
@@ -128,24 +133,54 @@ const ProductDetail = () => {
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ];
-    if (!allowedTypes.includes(file.type)) {
+    const invalidFiles = files.filter(file => !allowedTypes.includes(file.type));
+    if (invalidFiles.length > 0) {
       setUploadError('不支持的文件格式。請上傳 PDF、DOC、DOCX 或圖片格式的文件。');
       return;
     }
+
     setUploadLoading(true);
     setUploadError(null);
+
     try {
       const formData = new FormData();
-      formData.append(type === 'receipt' ? 'receipt' : 'warrantyDocument', file);
+      
+      // 添加所有文件到FormData
+      files.forEach(file => {
+        formData.append(type === 'receipt' ? 'receipt' : 'warrantyDocument', file);
+      });
+
+      console.log('正在上傳文件...');
+      console.log('文件數量:', files.length);
+      console.log('文件類型:', type);
+
       const response = await api.post(
         `/api/products/${id}/upload-${type === 'receipt' ? 'receipt' : 'warranty'}`,
         formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } }
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Accept': 'application/json'
+          },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            console.log('上傳進度:', percentCompleted + '%');
+          }
+        }
       );
-      setProduct(response.data.data.product);
-      setUploadLoading(false);
+
+      console.log('上傳響應:', response.data);
+      
+      if (response.data.success) {
+        setProduct(response.data.data.product);
+        setUploadError(null);
+      } else {
+        setUploadError(response.data.error || '上傳文件失敗');
+      }
     } catch (error) {
+      console.error('文件上傳錯誤:', error);
       setUploadError(error.response?.data?.message || '上傳文件失敗，請稍後再試');
+    } finally {
       setUploadLoading(false);
     }
   };
@@ -244,12 +279,12 @@ const ProductDetail = () => {
                     ? product.images[0].startsWith('http')
                       ? product.images[0]
                       : `${process.env.REACT_APP_API_URL}/uploads/products/${product.images[0].split('/').pop()}`
-                    : `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.svg`
+                    : `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.jpg`
                 }
                 alt={product?.name}
                 className="w-full h-full object-cover"
                 onError={(e) =>
-                  (e.target.src = `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.svg`)
+                  (e.target.src = `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.jpg`)
                 }
               />
             </div>
@@ -266,7 +301,7 @@ const ProductDetail = () => {
                     alt={`${product.name} ${index + 1}`}
                     className="w-14 h-14 object-cover rounded-lg border-2 border-gray-200 hover:border-primary-500 cursor-pointer"
                     onError={(e) =>
-                      (e.target.src = `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.svg`)
+                      (e.target.src = `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.jpg`)
                     }
                   />
                 ))}
@@ -445,6 +480,7 @@ const ProductDetail = () => {
                       icon={uploadLoading ? faSpinner : faPlus}
                       onClick={() => document.getElementById('receipt-upload').click()}
                       disabled={uploadLoading || deleteFileLoading}
+                      className="w-[167px]"
                     >
                       上傳收據
                     </Button>
@@ -473,24 +509,22 @@ const ProductDetail = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <a
-                              href={`${process.env.REACT_APP_API_URL.replace(/\/$/, '')}/${receipt.replace(
-                                /^\//,
-                                ''
-                              )}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm text-gray-600 hover:text-gray-900"
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => window.open(`${process.env.REACT_APP_API_URL}${receipt}`, '_blank')}
+                              className="text-gray-600 hover:text-gray-700 w-[80px]"
                             >
+                              <FontAwesomeIcon icon={faFile} className="mr-1" />
                               查看
-                            </a>
+                            </Button>
                             <Button
                               variant="ghost"
                               size="sm"
                               icon={faTimes}
                               onClick={() => handleDeleteFileConfirm(index, 'receipt')}
                               disabled={deleteFileLoading}
-                              className="text-red-600 hover:text-red-700"
+                              className="text-gray-600 hover:text-gray-700 w-[80px]"
                             >
                               刪除
                             </Button>
@@ -525,6 +559,7 @@ const ProductDetail = () => {
                       icon={uploadLoading ? faSpinner : faPlus}
                       onClick={() => document.getElementById('warranty-upload').click()}
                       disabled={uploadLoading || deleteFileLoading}
+                      className="w-[167px]"
                     >
                       上傳文件
                     </Button>
@@ -553,24 +588,22 @@ const ProductDetail = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <a
-                              href={`${process.env.REACT_APP_API_URL.replace(/\/$/, '')}/${doc.replace(
-                                /^\//,
-                                ''
-                              )}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm text-gray-600 hover:text-gray-900"
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              icon={faFile}
+                              onClick={() => window.open(`${process.env.REACT_APP_API_URL}${doc}`, '_blank')}
+                              className="text-gray-600 hover:text-gray-700 w-[80px]"
                             >
                               查看
-                            </a>
+                            </Button>
                             <Button
                               variant="ghost"
                               size="sm"
                               icon={faTimes}
                               onClick={() => handleDeleteFileConfirm(index, 'warranty')}
                               disabled={deleteFileLoading}
-                              className="text-red-600 hover:text-red-700"
+                              className="text-red-600 hover:text-red-700 w-[80px]"
                             >
                               刪除
                             </Button>
@@ -654,7 +687,7 @@ const ProductDetail = () => {
                         ? product.images[0].startsWith('http')
                           ? product.images[0]
                           : `${process.env.REACT_APP_API_URL}/uploads/products/${product.images[0].split('/').pop()}`
-                        : `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.svg`
+                        : `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.jpg`
                     }
                     alt={product?.name}
                     className="object-cover w-full h-32 rounded-md"
