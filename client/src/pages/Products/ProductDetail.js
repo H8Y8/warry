@@ -25,12 +25,6 @@ import {
   faWhatsapp,
   faLine,
 } from '@fortawesome/free-brands-svg-icons';
-import {
-  FacebookShareButton,
-  TwitterShareButton,
-  WhatsappShareButton,
-  LineShareButton,
-} from 'react-share';
 import html2canvas from 'html2canvas';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -208,20 +202,94 @@ const ProductDetail = () => {
     }
   };
 
+  const openShareModal = async () => {
+    setShowShareModal(true);
+    
+    // 等待模態框渲染
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    if (shareCardRef.current) {
+      // 將卡片移動到可見區域以便截圖
+      const card = shareCardRef.current;
+      const originalStyles = {
+        position: card.style.position,
+        top: card.style.top,
+        left: card.style.left,
+        visibility: card.style.visibility,
+        display: card.style.display,
+        zIndex: card.style.zIndex
+      };
+      
+      // 臨時將卡片移動到頁面頂部可見區域
+      document.body.appendChild(card);
+      card.style.position = 'fixed';
+      card.style.top = '0';
+      card.style.left = '0';
+      card.style.visibility = 'visible';
+      card.style.display = 'block';
+      card.style.zIndex = '9999';
+      
+      // 再次等待確保樣式已應用
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      try {
+        generateScreenshot();
+      } catch (error) {
+        console.error('無法生成截圖:', error);
+        setUploadError('生成截圖失敗，請稍後再試');
+      } finally {
+        // 恢復原始位置和樣式
+        card.style.position = originalStyles.position;
+        card.style.top = originalStyles.top;
+        card.style.left = originalStyles.left;
+        card.style.visibility = originalStyles.visibility;
+        card.style.display = originalStyles.display;
+        card.style.zIndex = originalStyles.zIndex;
+      }
+    } else {
+      console.error('無法找到要截圖的元素');
+    }
+  };
+
   const generateScreenshot = async () => {
-    if (!shareCardRef.current) return;
+    if (!shareCardRef.current) {
+      console.error('無法找到要截圖的元素');
+      return;
+    }
+
     setScreenshotLoading(true);
     try {
+      // 等待所有圖片加載完成
+      const images = shareCardRef.current.getElementsByTagName('img');
+      await Promise.all(
+        Array.from(images).map(
+          (img) =>
+            new Promise((resolve) => {
+              if (img.complete) {
+                resolve();
+              } else {
+                img.onload = resolve;
+                img.onerror = resolve; // 即使圖片加載失敗也繼續
+              }
+            })
+        )
+      );
+
       const canvas = await html2canvas(shareCardRef.current, {
-        scale: 2,
+        scale: 1.2,
         backgroundColor: null,
         logging: false,
+        useCORS: true,
+        allowTaint: true,
+        foreignObjectRendering: false,
       });
+
       const imageUrl = canvas.toDataURL('image/png');
       setScreenshotUrl(imageUrl);
-      setScreenshotLoading(false);
     } catch (error) {
       console.error('生成截圖錯誤:', error);
+      setUploadError('生成截圖失敗，請稍後再試');
+    } finally {
       setScreenshotLoading(false);
     }
   };
@@ -234,11 +302,6 @@ const ProductDetail = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
-
-  const openShareModal = async () => {
-    setShowShareModal(true);
-    setTimeout(() => generateScreenshot(), 100); // 延遲確保 DOM 已渲染
   };
 
   if (loading) {
@@ -648,116 +711,191 @@ const ProductDetail = () => {
         )}
 
         {/* 隱藏的分享卡片區域，用於生成截圖 */}
-        {showShareModal && (
-          <div className="fixed -top-full left-0">
-            <div
-              ref={shareCardRef}
-              className="w-[400px] bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg shadow-lg p-6"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
-                  <div className="h-12 w-12 bg-white rounded-full flex items-center justify-center shadow-md">
-                    <FontAwesomeIcon icon={faShieldAlt} className="text-primary-600 text-xl" />
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-white font-bold text-xl">保固卡</h3>
-                    <p className="text-primary-200 text-sm">WARRY</p>
-                  </div>
+        <div className="fixed -top-full left-0 opacity-0 pointer-events-none">
+          <div
+            ref={shareCardRef}
+            className="w-[400px] bg-white rounded-lg shadow-xl overflow-hidden border border-gray-200"
+          >
+            {/* 頂部標題區域 */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="bg-primary-500 rounded-full p-2 flex items-center justify-center">
+                  <FontAwesomeIcon icon={faShieldAlt} className="text-white h-5 w-5" />
                 </div>
-                <div className="bg-white bg-opacity-20 p-2 rounded-md">
-                  <h4 className="text-white text-sm">保固狀態</h4>
-                  <span
-                    className={`mt-1 inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                      product?.daysLeft <= 0
-                        ? 'bg-red-500 text-white'
-                        : product?.daysLeft <= 30
-                        ? 'bg-yellow-500 text-white'
-                        : 'bg-green-500 text-white'
-                    }`}
-                  >
-                    {product?.daysLeft <= 0 ? '已過期' : `剩餘 ${product?.daysLeft} 天`}
-                  </span>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">保固卡</h2>
+                  <p className="text-xs text-gray-500">WARRY™</p>
                 </div>
               </div>
-              <div className="mb-4">
-                <div className="bg-white bg-opacity-10 rounded-lg p-4">
-                  <img
-                    src={
-                      product?.images?.[0]
-                        ? product.images[0].startsWith('http')
-                          ? product.images[0]
-                          : `${process.env.REACT_APP_API_URL}/uploads/products/${product.images[0].split('/').pop()}`
-                        : `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.jpg`
-                    }
-                    alt={product?.name}
-                    className="object-cover w-full h-32 rounded-md"
-                  />
-                  <h2 className="mt-3 text-white font-bold text-xl truncate">
-                    {product?.name || '未知產品'}
-                  </h2>
-                </div>
+              <div className="flex flex-col items-end">
+                <span className="text-sm text-gray-500 mb-1">保固狀態</span>
+                <span
+                  className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium ${
+                    product?.daysLeft <= 0
+                      ? 'bg-red-500 text-white'
+                      : product?.daysLeft <= 30
+                      ? 'bg-yellow-500 text-white'
+                      : 'bg-green-500 text-white'
+                  }`}
+                >
+                  {product?.daysLeft <= 0 ? '已過期' : `剩餘 ${product?.daysLeft} 天`}
+                </span>
               </div>
-              {product?.description && (
-                <div className="mb-4">
-                  <h4 className="text-primary-200 text-xs">描述</h4>
-                  <p className="text-white text-sm">
-                    {product.description.length > 100
-                      ? `${product.description.substring(0, 100)}...`
-                      : product.description}
-                  </p>
-                </div>
-              )}
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="bg-white bg-opacity-10 p-3 rounded-md">
-                  <h4 className="text-primary-200 text-xs">品牌</h4>
-                  <p className="text-white font-medium truncate">{product?.brand || '未知'}</p>
-                </div>
-                <div className="bg-white bg-opacity-10 p-3 rounded-md">
-                  <h4 className="text-primary-200 text-xs">型號</h4>
-                  <p className="text-white font-medium truncate">{product?.model || '未知'}</p>
-                </div>
-                <div className="bg-white bg-opacity-10 p-3 rounded-md">
-                  <h4 className="text-primary-200 text-xs">類型</h4>
-                  <p className="text-white font-medium truncate">{product?.type || '未知'}</p>
-                </div>
-                <div className="bg-white bg-opacity-10 p-3 rounded-md">
-                  <h4 className="text-primary-200 text-xs">購買日期</h4>
-                  <p className="text-white font-medium">
-                    {product?.purchaseDate ? formatDate(product.purchaseDate) : '未知'}
-                  </p>
-                </div>
-                <div className="bg-white bg-opacity-10 p-3 rounded-md">
-                  <h4 className="text-primary-200 text-xs">保固到期</h4>
-                  <p className="text-white font-medium">
-                    {product?.warrantyEndDate ? formatDate(product.warrantyEndDate) : '未知'}
-                  </p>
-                </div>
-                {product?.serialNumber && (
-                  <div className="bg-white bg-opacity-10 p-3 rounded-md">
-                    <h4 className="text-primary-200 text-xs">序號</h4>
-                    <p className="text-white font-medium">{product.serialNumber}</p>
+            </div>
+
+            {/* 產品圖片區域 */}
+            <div className="relative bg-gray-100 aspect-video flex items-center justify-center">
+              <img
+                src={
+                  product?.images?.[0]
+                    ? product.images[0].startsWith('http')
+                      ? product.images[0]
+                      : `${process.env.REACT_APP_API_URL}/uploads/products/${product.images[0].split('/').pop()}`
+                    : `${process.env.REACT_APP_API_URL}/uploads/products/default-product-image.jpg`
+                }
+                alt={product?.name}
+                className="h-full object-contain"
+                crossOrigin="anonymous"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-3">
+                <h3 className="font-bold text-lg">{product?.name || '未知產品'}</h3>
+              </div>
+            </div>
+
+            {/* 主要內容區域 */}
+            <div className="p-4 space-y-5">
+              {/* 產品資訊區塊 */}
+              <section>
+                <h3 className="text-sm font-medium flex items-center gap-2 mb-3 text-primary-500">
+                  <FontAwesomeIcon icon={faInfoCircle} className="h-4 w-4" />
+                  產品資訊
+                </h3>
+
+                <div className="space-y-3">
+                  {product?.description && (
+                    <div>
+                      <h4 className="text-xs uppercase text-gray-500 mb-1.5">產品描述</h4>
+                      <p className="text-sm bg-gray-50 p-3 rounded-md border border-gray-200">
+                        {product.description.length > 100
+                          ? `${product.description.substring(0, 100)}...`
+                          : product.description}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
+                      <span className="text-xs text-gray-500 block mb-1">品牌</span>
+                      <span className="font-medium">{product?.brand || '未知'}</span>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
+                      <span className="text-xs text-gray-500 block mb-1">型號</span>
+                      <span className="font-medium">{product?.model || '未知'}</span>
+                    </div>
                   </div>
-                )}
-              </div>
-              <div className="flex justify-between mt-4">
-                <div className="text-primary-200 text-xs">
-                  由 WARRY 生成 • {new Date().toLocaleDateString('zh-TW')}
+
+                  {product?.serialNumber && (
+                    <div className="bg-gray-50 p-3 rounded-md border border-gray-200 flex justify-between items-center">
+                      <span className="text-xs text-gray-500">序號</span>
+                      <span className="font-mono text-sm">{product.serialNumber}</span>
+                    </div>
+                  )}
                 </div>
-                <div className="flex space-x-1">
-                  <div className="bg-white h-1 w-8 rounded opacity-70"></div>
-                  <div className="bg-white h-1 w-3 rounded opacity-40"></div>
-                  <div className="bg-white h-1 w-1 rounded opacity-20"></div>
+              </section>
+
+              <div className="border-t border-gray-200 my-2"></div>
+
+              {/* 保固詳情區塊 */}
+              <section>
+                <h3 className="text-sm font-medium flex items-center gap-2 mb-3 text-primary-500">
+                  <FontAwesomeIcon icon={faShieldAlt} className="h-4 w-4" />
+                  保固詳情
+                </h3>
+
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
+                      <span className="text-xs text-gray-500 block mb-1">購買日期</span>
+                      <div className="flex items-center gap-1.5">
+                        <FontAwesomeIcon icon={faCalendarAlt} className="h-3.5 w-3.5 text-gray-400" />
+                        <span className="font-medium">
+                          {product?.purchaseDate ? formatDate(product.purchaseDate) : '未知'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
+                      <span className="text-xs text-gray-500 block mb-1">保固到期</span>
+                      <div className="flex items-center gap-1.5">
+                        <FontAwesomeIcon icon={faCalendarAlt} className="h-3.5 w-3.5 text-gray-400" />
+                        <span className="font-medium">
+                          {product?.warrantyEndDate ? formatDate(product.warrantyEndDate) : '未知'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {product?.warrantyEndDate && product?.purchaseDate && (
+                    <div className="bg-primary-50 border border-primary-200 p-4 rounded-md">
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="font-medium">保固期間</span>
+                        <span
+                          className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                            product?.daysLeft <= 0
+                              ? 'bg-red-500 text-white'
+                              : product?.daysLeft <= 30
+                              ? 'bg-yellow-500 text-white'
+                              : 'bg-green-500 text-white'
+                          }`}
+                        >
+                          {product?.daysLeft <= 0 ? '已過期' : '有效'}
+                        </span>
+                      </div>
+                      {/* 進度條 */}
+                      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full ${
+                            product?.daysLeft <= 0
+                              ? 'bg-red-500'
+                              : product?.daysLeft <= 30
+                              ? 'bg-yellow-500'
+                              : 'bg-green-500'
+                          }`} 
+                          style={{ 
+                            width: `${Math.max(0, Math.min(100, (product.daysLeft / 365) * 100))}%` 
+                          }}
+                        ></div>
+                      </div>
+                      <div className="flex justify-between mt-2 text-xs">
+                        <span className="text-gray-500">
+                          {product?.purchaseDate ? new Date(product.purchaseDate).toLocaleDateString('zh-TW') : ''}
+                        </span>
+                        <span className="font-medium">
+                          {product?.daysLeft > 0 ? `${product.daysLeft} 天剩餘` : '已過期'}
+                        </span>
+                        <span className="text-gray-500">
+                          {product?.warrantyEndDate ? new Date(product.warrantyEndDate).toLocaleDateString('zh-TW') : ''}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
+              </section>
+            </div>
+
+            {/* 底部資訊 */}
+            <div className="flex justify-between items-center p-4 border-t border-gray-200">
+              <div className="text-xs text-gray-500">
+                由 WARRY 生成 • {new Date().toLocaleDateString('zh-TW')}
               </div>
             </div>
           </div>
-        )}
+        </div>
 
         {/* 分享模態框 */}
         {showShareModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
-              <div className="flex justify-between items-center mb-6">
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-80 flex items-center justify-center z-50 p-4 overflow-y-auto backdrop-blur-sm">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-4 sm:p-6">
+              <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold text-gray-900">分享產品保固卡</h3>
                 <button
                   onClick={() => setShowShareModal(false)}
@@ -767,7 +905,7 @@ const ProductDetail = () => {
                 </button>
               </div>
               <div className="flex flex-col lg:flex-row gap-6">
-                <div className="flex-1 flex justify-center">
+                <div className="flex-1 flex justify-center items-center bg-gray-50 rounded-lg p-3 overflow-hidden">
                   {screenshotLoading ? (
                     <div className="flex justify-center items-center h-64 w-full">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
@@ -776,7 +914,7 @@ const ProductDetail = () => {
                     <img
                       src={screenshotUrl}
                       alt="產品保固卡"
-                      className="max-w-full rounded-lg shadow-lg"
+                      className="max-h-[400px] object-contain w-auto rounded-lg shadow-lg"
                     />
                   ) : (
                     <p className="text-gray-500">正在生成截圖...</p>
@@ -785,46 +923,53 @@ const ProductDetail = () => {
                 <div className="flex-1">
                   <h4 className="text-lg font-semibold text-gray-900 mb-4">分享到社交媒體</h4>
                   <div className="grid grid-cols-2 gap-3 mb-6">
-                    <FacebookShareButton
-                      url={window.location.href}
-                      title={`查看我的產品保固卡：${product?.name || '我的產品'}`}
-                      className="w-full"
+                    <button
+                      onClick={() => {
+                        const url = encodeURIComponent(window.location.href);
+                        const text = encodeURIComponent(`查看我的產品保固卡：${product?.name || '我的產品'}`);
+                        window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`, '_blank');
+                      }}
+                      className="flex items-center justify-center w-full py-2 px-4 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-blue-50 transition-colors"
                     >
-                      <button className="flex items-center justify-center w-full py-2 px-4 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-blue-50">
-                        <FontAwesomeIcon icon={faFacebook} className="text-blue-600 mr-2" />
-                        Facebook
-                      </button>
-                    </FacebookShareButton>
-                    <TwitterShareButton
-                      url={window.location.href}
-                      title={`查看我的產品保固卡：${product?.name || '我的產品'}`}
-                      className="w-full"
+                      <FontAwesomeIcon icon={faFacebook} className="text-blue-600 mr-2" />
+                      <span>Facebook</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        const url = encodeURIComponent(window.location.href);
+                        const text = encodeURIComponent(`查看我的產品保固卡：${product?.name || '我的產品'}`);
+                        window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+                      }}
+                      className="flex items-center justify-center w-full py-2 px-4 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-blue-50 transition-colors"
                     >
-                      <button className="flex items-center justify-center w-full py-2 px-4 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-blue-50">
-                        <FontAwesomeIcon icon={faTwitter} className="text-blue-400 mr-2" />
-                        Twitter
-                      </button>
-                    </TwitterShareButton>
-                    <WhatsappShareButton
-                      url={window.location.href}
-                      title={`查看我的產品保固卡：${product?.name || '我的產品'}`}
-                      className="w-full"
+                      <FontAwesomeIcon icon={faTwitter} className="text-blue-400 mr-2" />
+                      <span>Twitter</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        const url = encodeURIComponent(window.location.href);
+                        const text = encodeURIComponent(`查看我的產品保固卡：${product?.name || '我的產品'}`);
+                        window.open(`https://api.whatsapp.com/send?text=${text}%20${url}`, '_blank');
+                      }}
+                      className="flex items-center justify-center w-full py-2 px-4 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-green-50 transition-colors"
                     >
-                      <button className="flex items-center justify-center w-full py-2 px-4 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-green-50">
-                        <FontAwesomeIcon icon={faWhatsapp} className="text-green-500 mr-2" />
-                        WhatsApp
-                      </button>
-                    </WhatsappShareButton>
-                    <LineShareButton
-                      url={window.location.href}
-                      title={`查看我的產品保固卡：${product?.name || '我的產品'}`}
-                      className="w-full"
+                      <FontAwesomeIcon icon={faWhatsapp} className="text-green-500 mr-2" />
+                      <span>WhatsApp</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        const url = encodeURIComponent(window.location.href);
+                        const text = encodeURIComponent(`查看我的產品保固卡：${product?.name || '我的產品'}`);
+                        window.open(`https://social-plugins.line.me/lineit/share?url=${url}&text=${text}`, '_blank');
+                      }}
+                      className="flex items-center justify-center w-full py-2 px-4 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-green-50 transition-colors"
                     >
-                      <button className="flex items-center justify-center w-full py-2 px-4 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-green-50">
-                        <FontAwesomeIcon icon={faLine} className="text-green-600 mr-2" />
-                        LINE
-                      </button>
-                    </LineShareButton>
+                      <FontAwesomeIcon icon={faLine} className="text-green-600 mr-2" />
+                      <span>LINE</span>
+                    </button>
                   </div>
                   <div className="border-t border-gray-200 pt-4">
                     <h4 className="text-lg font-semibold text-gray-900 mb-4">保存圖片</h4>
@@ -832,7 +977,7 @@ const ProductDetail = () => {
                       <button
                         onClick={downloadScreenshot}
                         disabled={!screenshotUrl || screenshotLoading}
-                        className="flex items-center w-full py-2 px-4 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center justify-center w-full py-2.5 px-4 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         <FontAwesomeIcon icon={faDownload} className="text-gray-600 mr-2" />
                         下載保固卡圖片
@@ -840,7 +985,7 @@ const ProductDetail = () => {
                       <button
                         onClick={generateScreenshot}
                         disabled={screenshotLoading}
-                        className="flex items-center w-full py-2 px-4 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center justify-center w-full py-2.5 px-4 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         <FontAwesomeIcon icon={faCamera} className="text-gray-600 mr-2" />
                         重新生成圖片
